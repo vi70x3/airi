@@ -1,0 +1,564 @@
+<script setup lang="ts">
+import type { AiriExtension } from '@proj-airi/stage-ui/stores/modules/airi-card'
+
+import { DisplayModelFormat, useDisplayModelsStore } from '@proj-airi/stage-ui/stores/display-models'
+import { useAiriCardStore } from '@proj-airi/stage-ui/stores/modules/airi-card'
+import { useConsciousnessStore } from '@proj-airi/stage-ui/stores/modules/consciousness'
+import { useSpeechStore } from '@proj-airi/stage-ui/stores/modules/speech'
+import { useProvidersStore } from '@proj-airi/stage-ui/stores/providers'
+import { useSettingsStageModel } from '@proj-airi/stage-ui/stores/settings/stage-model'
+import { Button } from '@proj-airi/ui'
+import { Select } from '@proj-airi/ui/components/form'
+import { storeToRefs } from 'pinia'
+import { DialogContent, DialogOverlay, DialogPortal, DialogRoot, DialogTitle } from 'reka-ui'
+import { computed, ref, watch } from 'vue'
+import { toast } from 'vue-sonner'
+
+const DEFAULT_POST_HISTORY_INSTRUCTIONS = `Maintain your persona as the user's dedicated digital companion. Your goal is to provide a seamless, supportive, and emotionally resonant experience. Follow all personality and scenario cues strictly, and ensure your tone remains consistent with the established character traits.`
+
+const props = defineProps<{
+  modelValue: boolean
+  cardData: any
+}>()
+
+const emit = defineEmits<{
+  (e: 'update:modelValue', value: boolean): void
+  (e: 'imported', cardId: string): void
+}>()
+
+const cardStore = useAiriCardStore()
+const consciousnessStore = useConsciousnessStore()
+const speechStore = useSpeechStore()
+const providersStore = useProvidersStore()
+const displayModelsStore = useDisplayModelsStore()
+const stageModelStore = useSettingsStageModel()
+
+const { activeProvider: consciousnessProvider, activeModel: defaultConsciousnessModel } =
+  storeToRefs(consciousnessStore)
+const {
+  activeSpeechProvider: speechProvider,
+  activeSpeechModel: defaultSpeechModel,
+  activeSpeechVoiceId: defaultSpeechVoiceId,
+} = storeToRefs(speechStore)
+const { stageModelSelected: defaultDisplayModelId } = storeToRefs(stageModelStore)
+
+const currentStep = ref(1)
+
+// Form states
+const name = ref('')
+const selectedDisplayModelId = ref('')
+const selectedConsciousnessProvider = ref('')
+const selectedConsciousnessModel = ref('')
+const selectedSpeechProvider = ref('')
+const selectedSpeechModel = ref('')
+const selectedSpeechVoiceId = ref('')
+const userName = ref('')
+
+// Async model options (fetched on provider change)
+const consciousnessModelOptions = ref<{ value: string; label: string }[]>([])
+const speechModelOptions = ref<{ value: string; label: string }[]>([])
+
+const hasUserPattern = computed(() => {
+  if (!props.cardData) return false
+  const fields = [
+    props.cardData.description,
+    props.cardData.personality,
+    props.cardData.scenario,
+    props.cardData.systemPrompt,
+    ...(props.cardData.greetings || []),
+  ]
+  return fields.some((f) => typeof f === 'string' && f.includes('{{user}}'))
+})
+
+// Toggles (Wizard defaults)
+const artistryAutonomousEnabled = ref(false)
+const dreamStateEnabled = ref(true)
+const proactivityEnabled = ref(false)
+
+// Options computed properties
+const displayModelOptions = computed(() => {
+  return displayModelsStore.displayModels.map((model) => {
+    const isLive2D =
+      model.format === DisplayModelFormat.Live2dZip || model.format === DisplayModelFormat.Live2dDirectory
+    const isSpine = model.format === DisplayModelFormat.SpineZip
+    const isMmd =
+      model.format === DisplayModelFormat.PMXZip ||
+      model.format === DisplayModelFormat.PMXDirectory ||
+      model.format === DisplayModelFormat.PMD
+    let prefix = '[VRM]'
+    if (isLive2D) prefix = '[Live2D]'
+    else if (isSpine) prefix = '[Spine]'
+    else if (isMmd) prefix = '[MMD]'
+    return {
+      id: model.id,
+      name: model.name,
+      prefix,
+      preview: model.previewImage,
+    }
+  })
+})
+
+const consciousnessProviderOptions = computed(() => {
+  return providersStore.configuredChatProvidersMetadata.map((provider) => ({
+    value: provider.id,
+    label: provider.name,
+  }))
+})
+
+const speechProviderOptions = computed(() => {
+  return providersStore.configuredSpeechProvidersMetadata.map((provider) => ({
+    value: provider.id,
+    label: provider.name,
+  }))
+})
+
+const speechVoiceOptions = computed(() => {
+  const provider = selectedSpeechProvider.value || speechProvider.value
+  if (!provider) return []
+  const voices = speechStore.getVoicesForProvider(provider)
+  return voices.map((voice) => ({
+    value: voice.id,
+    label: voice.name || voice.id,
+  }))
+})
+
+// Initialize state
+watch(
+  () => [props.modelValue, props.cardData],
+  () => {
+    if (props.modelValue && props.cardData) {
+      currentStep.value = 1
+      name.value = props.cardData.name || 'Imported Card'
+      userName.value = ''
+      selectedDisplayModelId.value = defaultDisplayModelId.value || ''
+      selectedConsciousnessProvider.value = consciousnessProvider.value || ''
+      selectedConsciousnessModel.value = defaultConsciousnessModel.value || ''
+      selectedSpeechProvider.value = speechProvider.value || ''
+      selectedSpeechModel.value = defaultSpeechModel.value || ''
+      selectedSpeechVoiceId.value = defaultSpeechVoiceId.value || ''
+
+      artistryAutonomousEnabled.value = false
+      dreamStateEnabled.value = true
+      proactivityEnabled.value = false
+    }
+  },
+  { immediate: true },
+)
+
+watch(selectedConsciousnessProvider, async (newProvider) => {
+  if (newProvider) {
+    await consciousnessStore.loadModelsForProvider(newProvider)
+    const models = await consciousnessStore.getModelsForProvider(newProvider)
+    consciousnessModelOptions.value = models.map((model) => ({
+      value: model.id,
+      label: model.id,
+    }))
+    selectedConsciousnessModel.value = ''
+  } else {
+    consciousnessModelOptions.value = []
+  }
+})
+
+watch(selectedSpeechProvider, async (newProvider) => {
+  if (newProvider) {
+    await speechStore.loadVoicesForProvider(newProvider)
+    const metadata = providersStore.getProviderMetadata(newProvider)
+    if (metadata?.capabilities.listModels) {
+      await providersStore.fetchModelsForProvider(newProvider)
+    }
+    const models = providersStore.getModelsForProvider(newProvider)
+    speechModelOptions.value = models.map((model) => ({
+      value: model.id,
+      label: model.id,
+    }))
+    selectedSpeechModel.value = ''
+    selectedSpeechVoiceId.value = ''
+  } else {
+    speechModelOptions.value = []
+  }
+})
+
+// Handle wizard navigation
+function nextStep() {
+  if (currentStep.value === 1) {
+    if (!name.value.trim()) {
+      toast.error('Character name is required.')
+      return
+    }
+    if (hasUserPattern.value && !userName.value.trim()) {
+      toast.error('Your name is required by this card.')
+      return
+    }
+  }
+  if (currentStep.value < 4) {
+    currentStep.value++
+  }
+}
+
+function prevStep() {
+  if (currentStep.value > 1) {
+    currentStep.value--
+  }
+}
+
+async function finalizeImport() {
+  try {
+    const replacePatterns = (text: string) => {
+      if (typeof text !== 'string') return text
+      let res = text.replace(/\{\{char\}\}/g, name.value.trim())
+      if (userName.value.trim()) {
+        res = res.replace(/\{\{user\}\}/g, userName.value.trim())
+      }
+      return res
+    }
+
+    const formattedGreetings = (props.cardData.greetings || []).map((g: string) => replacePatterns(g))
+
+    const formattedMessageExample = (props.cardData.messageExample || []).map((example: any) => {
+      if (Array.isArray(example)) {
+        return example.map((line: string) => replacePatterns(line))
+      }
+      return replacePatterns(example)
+    })
+
+    const finalCard = {
+      ...props.cardData,
+      name: name.value.trim(),
+      description: replacePatterns(props.cardData.description || ''),
+      personality: replacePatterns(props.cardData.personality || ''),
+      scenario: replacePatterns(props.cardData.scenario || ''),
+      systemPrompt: replacePatterns(props.cardData.systemPrompt) || '.',
+      postHistoryInstructions:
+        replacePatterns(props.cardData.postHistoryInstructions) || DEFAULT_POST_HISTORY_INSTRUCTIONS,
+      greetings: formattedGreetings,
+      messageExample: formattedMessageExample,
+      extensions: {
+        ...props.cardData.extensions,
+        airi: {
+          ...props.cardData.extensions?.airi,
+          modules: {
+            ...props.cardData.extensions?.airi?.modules,
+            consciousness: {
+              provider: selectedConsciousnessProvider.value,
+              model: selectedConsciousnessModel.value,
+            },
+            speech: {
+              provider: selectedSpeechProvider.value,
+              model: selectedSpeechModel.value,
+              voice_id: selectedSpeechVoiceId.value,
+            },
+            displayModelId: selectedDisplayModelId.value,
+            activeBackgroundId: 'none',
+          },
+          artistry: {
+            ...props.cardData.extensions?.airi?.artistry,
+            autonomousEnabled: artistryAutonomousEnabled.value,
+          },
+          dreamState: {
+            ...props.cardData.extensions?.airi?.dreamState,
+            enabled: dreamStateEnabled.value,
+          },
+          heartbeats: {
+            ...props.cardData.extensions?.airi?.heartbeats,
+            enabled: proactivityEnabled.value,
+          },
+        } as AiriExtension,
+      },
+    }
+
+    const newId = await cardStore.addCard(finalCard)
+    emit('imported', newId)
+    emit('update:modelValue', false)
+    toast.success('Companion successfully configured and saved!')
+  } catch (error) {
+    console.error('[ImportWizard] Error saving card:', error)
+    toast.error('Failed to save imported card.')
+  }
+}
+</script>
+
+<template>
+  <DialogRoot :open="modelValue" @update:open="emit('update:modelValue', $event)">
+    <DialogPortal>
+      <DialogOverlay
+        class="fixed inset-0 z-100 bg-black/50 backdrop-blur-sm data-[state=closed]:animate-fadeOut data-[state=open]:animate-fadeIn"
+      />
+      <DialogContent
+        class="fixed left-1/2 top-1/2 z-100 m-0 max-h-[90vh] max-w-3xl w-[92vw] flex flex-col overflow-hidden border border-neutral-200 rounded-2xl bg-white p-6 shadow-2xl -translate-x-1/2 -translate-y-1/2 data-[state=closed]:animate-contentHide data-[state=open]:animate-contentShow dark:border-neutral-700 dark:bg-neutral-800"
+      >
+        <div class="h-full flex flex-col gap-6 overflow-hidden">
+          <!-- Title & Step Tracker -->
+          <div class="flex items-center justify-between border-b border-neutral-200 pb-3 dark:border-neutral-700">
+            <div>
+              <DialogTitle
+                class="from-primary-500 to-primary-400 bg-gradient-to-r bg-clip-text text-xl text-transparent font-bold"
+              >
+                Configure Imported Companion
+              </DialogTitle>
+              <p class="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+                Finetune your new companion before introducing them to the stage.
+              </p>
+            </div>
+            <div class="flex gap-1">
+              <span
+                v-for="s in 4"
+                :key="s"
+                :class="[
+                  'h-2 w-8 rounded-full transition-all duration-300',
+                  currentStep >= s ? 'bg-primary-500' : 'bg-neutral-200 dark:bg-neutral-700',
+                ]"
+              />
+            </div>
+          </div>
+
+          <!-- Step Content Container -->
+          <div class="flex-1 overflow-y-auto pr-1">
+            <!-- STEP 1: Identity & Prompts -->
+            <div v-if="currentStep === 1" class="flex flex-col gap-5">
+              <div class="flex flex-col gap-2">
+                <label class="text-sm text-neutral-600 font-semibold dark:text-neutral-300">Name</label>
+                <input
+                  v-model="name"
+                  type="text"
+                  placeholder="Companion name"
+                  class="w-full border border-neutral-200 rounded-xl bg-neutral-50/50 p-3 text-sm outline-none dark:border-neutral-700 focus:border-primary-500 dark:bg-neutral-900/50 dark:focus:border-primary-400"
+                />
+              </div>
+
+              <div v-if="hasUserPattern" class="flex flex-col gap-2">
+                <label class="text-sm text-neutral-600 font-semibold dark:text-neutral-300">
+                  Your Name (Required by Card)
+                </label>
+                <input
+                  v-model="userName"
+                  type="text"
+                  placeholder="Enter your name (replacing {{user}})"
+                  class="w-full border border-neutral-200 rounded-xl bg-neutral-50/50 p-3 text-sm outline-none dark:border-neutral-700 focus:border-primary-500 dark:bg-neutral-900/50 dark:focus:border-primary-400"
+                />
+              </div>
+
+              <div class="flex flex-col gap-2">
+                <label class="text-sm text-neutral-600 font-semibold dark:text-neutral-300">Greetings</label>
+                <div
+                  class="max-h-[100px] overflow-y-auto border border-neutral-200 rounded-xl bg-neutral-50/40 p-3 text-xs text-neutral-500 dark:border-neutral-700 dark:bg-neutral-950/40"
+                >
+                  <div v-for="(greet, i) in props.cardData?.greetings" :key="i" class="mb-2 last:mb-0">
+                    <strong>Greeting {{ Number(i) + 1 }}:</strong>
+                    {{ greet }}
+                  </div>
+                  <div v-if="!props.cardData?.greetings?.length" class="italic">No greetings imported.</div>
+                </div>
+              </div>
+
+              <div class="flex flex-col gap-2">
+                <label class="text-sm text-neutral-600 font-semibold dark:text-neutral-300">
+                  Personality & Context (Read-Only)
+                </label>
+                <textarea
+                  readonly
+                  :value="props.cardData?.personality || props.cardData?.description || 'No personality prompt found.'"
+                  rows="4"
+                  class="w-full resize-none border border-neutral-200 rounded-xl bg-neutral-50/40 p-3 text-xs text-neutral-500 outline-none dark:border-neutral-700 dark:bg-neutral-950/40"
+                />
+              </div>
+            </div>
+
+            <!-- STEP 2: Visual Avatar -->
+            <div v-if="currentStep === 2" class="flex flex-col gap-4">
+              <p class="text-sm text-neutral-500 dark:text-neutral-400">
+                Choose the visual model to represent this companion on stage.
+              </p>
+              <div class="grid grid-cols-2 max-h-[300px] gap-4 overflow-y-auto p-1 sm:grid-cols-3">
+                <div
+                  v-for="model in displayModelOptions"
+                  :key="model.id"
+                  :class="[
+                    'relative cursor-pointer overflow-hidden rounded-xl border-2 p-2 flex flex-col items-center justify-between transition-all aspect-[3/4]',
+                    selectedDisplayModelId === model.id
+                      ? 'border-primary-500 bg-primary-500/5'
+                      : 'border-neutral-200 bg-white hover:border-neutral-400 dark:border-neutral-700 dark:bg-neutral-900',
+                  ]"
+                  @click="selectedDisplayModelId = model.id"
+                >
+                  <div
+                    class="relative h-[70%] w-full flex items-center justify-center overflow-hidden rounded-lg bg-neutral-100 dark:bg-neutral-950"
+                  >
+                    <img v-if="model.preview" :src="model.preview" class="h-full w-full object-cover" />
+                    <div v-else class="i-solar-gallery-bold text-3xl text-neutral-300 dark:text-neutral-700" />
+                    <span
+                      class="absolute left-1 top-1 rounded bg-black/60 px-1 py-0.5 text-[9px] text-white font-bold uppercase"
+                    >
+                      {{ model.prefix }}
+                    </span>
+                  </div>
+                  <div class="mt-2 w-full text-center">
+                    <p class="truncate text-xs text-neutral-700 font-bold dark:text-neutral-300">
+                      {{ model.name }}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- STEP 3: Core Modules -->
+            <div v-if="currentStep === 3" class="grid grid-cols-1 gap-5 md:grid-cols-2">
+              <div
+                class="flex flex-col gap-4 border border-neutral-100 rounded-2xl bg-neutral-50/50 p-4 dark:border-neutral-700/55 dark:bg-neutral-900/30"
+              >
+                <h4 class="flex items-center gap-2 text-sm text-neutral-700 font-bold dark:text-neutral-200">
+                  <div i-lucide:brain class="text-primary-500" />
+                  Consciousness (LLM)
+                </h4>
+                <div class="flex flex-col gap-3">
+                  <div class="flex flex-col gap-1.5">
+                    <label class="text-xs text-neutral-400">Provider</label>
+                    <Select
+                      v-model="selectedConsciousnessProvider"
+                      :options="consciousnessProviderOptions"
+                      placeholder="Use default provider"
+                      class="w-full"
+                    />
+                  </div>
+                  <div class="flex flex-col gap-1.5">
+                    <label class="text-xs text-neutral-400">Model</label>
+                    <Select
+                      v-model="selectedConsciousnessModel"
+                      :options="consciousnessModelOptions"
+                      placeholder="Use default model"
+                      :disabled="!selectedConsciousnessProvider"
+                      class="w-full"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div
+                class="flex flex-col gap-4 border border-neutral-100 rounded-2xl bg-neutral-50/50 p-4 dark:border-neutral-700/55 dark:bg-neutral-900/30"
+              >
+                <h4 class="flex items-center gap-2 text-sm text-neutral-700 font-bold dark:text-neutral-200">
+                  <div i-lucide:mic class="text-primary-500" />
+                  Speech (TTS)
+                </h4>
+                <div class="flex flex-col gap-3">
+                  <div class="flex flex-col gap-1.5">
+                    <label class="text-xs text-neutral-400">Provider</label>
+                    <Select
+                      v-model="selectedSpeechProvider"
+                      :options="speechProviderOptions"
+                      placeholder="Use default provider"
+                      class="w-full"
+                    />
+                  </div>
+                  <div class="flex flex-col gap-1.5">
+                    <label class="text-xs text-neutral-400">Model</label>
+                    <Select
+                      v-model="selectedSpeechModel"
+                      :options="speechModelOptions"
+                      placeholder="Use default model"
+                      :disabled="!selectedSpeechProvider"
+                      class="w-full"
+                    />
+                  </div>
+                  <div class="flex flex-col gap-1.5">
+                    <label class="text-xs text-neutral-400">Voice</label>
+                    <Select
+                      v-model="selectedSpeechVoiceId"
+                      :options="speechVoiceOptions"
+                      placeholder="Use default voice"
+                      :disabled="!selectedSpeechProvider"
+                      class="w-full"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- STEP 4: Quick Toggles -->
+            <div v-if="currentStep === 4" class="flex flex-col gap-4">
+              <p class="text-sm text-neutral-500 dark:text-neutral-400">
+                Set final initial preferences for your companion's extra behaviors.
+              </p>
+
+              <div class="flex flex-col gap-3">
+                <div
+                  class="flex items-center justify-between border border-neutral-100 rounded-xl bg-neutral-50/30 p-4 dark:border-neutral-700/40 dark:bg-neutral-900/20"
+                >
+                  <div class="flex flex-col gap-1">
+                    <label class="text-sm text-neutral-700 font-bold dark:text-neutral-300">
+                      Dream State (Journaling)
+                    </label>
+                    <p class="max-w-md text-xs text-neutral-400">
+                      Let the companion periodically write thoughts, reflect on logs, and write down journals.
+                    </p>
+                  </div>
+                  <input
+                    v-model="dreamStateEnabled"
+                    type="checkbox"
+                    class="h-5 w-5 cursor-pointer accent-primary-500"
+                  />
+                </div>
+
+                <div
+                  class="flex items-center justify-between border border-neutral-100 rounded-xl bg-neutral-50/30 p-4 dark:border-neutral-700/40 dark:bg-neutral-900/20"
+                >
+                  <div class="flex flex-col gap-1">
+                    <label class="text-sm text-neutral-700 font-bold dark:text-neutral-300">Autonomous Artistry</label>
+                    <p class="max-w-md text-xs text-neutral-400">
+                      Allow the companion to autonomously trigger emotes and manners without direct instructions.
+                    </p>
+                  </div>
+                  <input
+                    v-model="artistryAutonomousEnabled"
+                    type="checkbox"
+                    class="h-5 w-5 cursor-pointer accent-primary-500"
+                  />
+                </div>
+
+                <div
+                  class="flex items-center justify-between border border-neutral-100 rounded-xl bg-neutral-50/30 p-4 dark:border-neutral-700/40 dark:bg-neutral-900/20"
+                >
+                  <div class="flex flex-col gap-1">
+                    <label class="text-sm text-neutral-700 font-bold dark:text-neutral-300">Active Proactivity</label>
+                    <p class="max-w-md text-xs text-neutral-400">
+                      Allow companion to initiate conversations periodically without user prompts.
+                    </p>
+                  </div>
+                  <input
+                    v-model="proactivityEnabled"
+                    type="checkbox"
+                    class="h-5 w-5 cursor-pointer accent-primary-500"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Wizard Footer Controls -->
+          <div class="flex items-center justify-between border-t border-neutral-200 pt-4 dark:border-neutral-700">
+            <Button
+              variant="secondary"
+              icon="i-solar:arrow-left-bold-duotone"
+              label="Back"
+              :disabled="currentStep === 1"
+              @click="prevStep"
+            />
+            <Button
+              v-if="currentStep < 4"
+              variant="primary"
+              icon="i-solar:arrow-right-bold-duotone"
+              label="Next"
+              @click="nextStep"
+            />
+            <Button
+              v-else
+              variant="primary"
+              icon="i-solar:check-circle-bold-duotone"
+              label="Complete Setup"
+              @click="finalizeImport"
+            />
+          </div>
+        </div>
+      </DialogContent>
+    </DialogPortal>
+  </DialogRoot>
+</template>
