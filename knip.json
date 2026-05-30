@@ -12,6 +12,7 @@
       "entry": [
         "src/main/index.ts",
         "src/preload/index.ts",
+        "src/preload/beat-sync.ts",
         "src/renderer/main.ts",
         "src/renderer/beat-sync.main.ts",
         "src/renderer/pages/**/*.vue",
@@ -50,7 +51,8 @@
     },
     "packages/plugin-sdk": {
       "project": [
-        "src/**/*.ts"
+        "src/**/*.ts",
+        "!src/**/testdata/**"
       ]
     },
     "packages/core-agent": {
@@ -61,6 +63,15 @@
     "packages/ccc": {
       "project": [
         "src/**/*.ts"
+      ]
+    },
+    "packages/stage-ui-live2d": {
+      "entry": [
+        "src/utils/live2d-structure-report.ts"
+      ],
+      "project": [
+        "src/**/*.ts",
+        "src/**/*.vue"
       ]
     },
     "packages/stage-layouts": {
