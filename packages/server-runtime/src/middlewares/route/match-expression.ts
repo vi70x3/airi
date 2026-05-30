@@ -121,6 +121,6 @@ function matchesDestination(destination: string | RouteTargetExpression, peer: A
   }
 }
 
-function matchesDestinations(destinations: Array<string | RouteTargetExpression>, peer: AuthenticatedPeer) {
+export function matchesDestinations(destinations: Array<string | RouteTargetExpression>, peer: AuthenticatedPeer) {
   return destinations.some(destination => matchesDestination(destination, peer))
 }

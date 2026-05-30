@@ -63,6 +63,9 @@ catalogs:
     '@types/unist':
       specifier: ^3.0.3
       version: 3.0.3
+    '@unocss/reset':
+      specifier: ^66.6.8
+      version: 66.6.8
     '@vue/test-utils':
       specifier: ^2.4.6
       version: 2.4.6
@@ -1499,7 +1502,7 @@ importers:
         specifier: ^8.18.1
         version: 8.18.1
       '@unocss/reset':
-        specifier: ^66.6.8
+        specifier: 'catalog:'
         version: 66.6.8
       '@vitejs/plugin-vue':
         specifier: ^6.0.6
@@ -1776,7 +1779,7 @@ importers:
         version: 3.5.32(typescript@5.9.3)
     devDependencies:
       '@unocss/reset':
-        specifier: ^66.6.8
+        specifier: 'catalog:'
         version: 66.6.8
       '@vitejs/plugin-vue':
         specifier: ^6.0.6
