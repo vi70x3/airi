@@ -1,11 +1,21 @@
 {
-  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "$schema": "https://unpkg.com/knip@6/schema.json",
   "tags": [
     "-lintignore"
   ],
   "ignoreDependencies": [
     "uno.css"
   ],
+  "ignoreIssues": {
+    "packages/plugin-sdk/**": [
+      "exports",
+      "types"
+    ],
+    "packages/core-agent/**": [
+      "exports",
+      "types"
+    ]
+  },
   "workspaces": {
     ".": {},
     "apps/stage-tamagotchi": {
