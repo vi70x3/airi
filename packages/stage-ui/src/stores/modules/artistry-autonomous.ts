@@ -54,7 +54,7 @@ export const useAutonomousArtistryStore = defineStore('artistry-autonomous', () 
       return
     }
     const { activeCard } = cardStore
-    const artistry = activeCard?.extensions?.airi?.modules?.artistry
+    const artistry = activeCard?.extensions?.airi?.artistry
     const autonomousEnabled = artistry?.autonomousEnabled ?? false
     const target = targetOverride || artistry?.autonomousTarget || 'user'
 

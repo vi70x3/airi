@@ -2,12 +2,9 @@ import type { Vector3 } from 'three'
 
 import { useBroadcastChannel, useLocalStorage } from '@vueuse/core'
 import { defineStore } from 'pinia'
-import { computed, ref, watch } from 'vue'
+import { ref, watch } from 'vue'
 
 import defaultSkyBoxSrc from '../components/Environment/assets/sky_linekotsi_23_HDRI.hdr?url'
-
-import { DEFAULT_CAMERA_POSITION, useThreeCamera } from './camera'
-import { supportedControl, useThreeViewControl } from './view-control'
 
 // TODO: this is for future type injection features
 // TODO: make a separate type.ts
@@ -16,18 +13,8 @@ export interface Vec3 {
   y: number
   z: number
 }
-export interface SceneBootstrap {
-  cacheHit: boolean
-  cameraDistance: number
-  cameraPosition: Vec3
-  eyeHeight: number
-  lookAtTarget: Vec3
-  modelOffset: Vec3
-  modelOrigin: Vec3
-  modelSize: Vec3
-}
 export type TrackingMode = 'camera' | 'mouse' | 'none'
-export type ScenePhase = 'pending' | 'loading' | 'binding' | 'mounted' | 'no-model' | 'error'
+export type InteractionMode = 'orbit' | 'tactile' | 'drag' | 'positioning'
 export type HexColor = string & { __hex?: true }
 
 export interface FieldBase<T> {
@@ -77,108 +64,101 @@ export type FieldValueOf<D> =
 type BroadcastChannelEvents = BroadcastChannelEventShouldUpdateView
 
 interface BroadcastChannelEventShouldUpdateView {
-  type: 'vrm-should-update-view'
-  href: string
-  instanceId: string
-  reason: string
-  sentAt: number
-  stack?: string
+  type: 'should-update-view'
+  reason?: string
 }
 
-const vrmViewUpdateRuntimeInstanceId = Math.random().toString(36).slice(2, 10)
-let vrmViewUpdateMessageSequence = 0
-const { modelOffset, set: setViewControl } = useThreeViewControl()
-const { cameraDistance, cameraFOV, cameraPosition } = useThreeCamera()
-
-const modelRotationY = useLocalStorage('settings/stage-ui-three/modelRotationY', 0)
-const trackingMode = useLocalStorage<TrackingMode>('settings/stage-ui-three/trackingMode', 'none')
-
 export const useModelStore = defineStore('modelStore', () => {
+  const activeVrm = ref<any>(null)
+  const activeVrmParser = ref<any>(null)
+  const activeVrmIdentity = ref<string>('')
   const { post, data } = useBroadcastChannel<BroadcastChannelEvents, BroadcastChannelEvents>({
-    name: 'airi-stores-stage-ui-three-vrm',
+    name: 'airi-stores-live2d',
   })
-  const shouldUpdateViewHooks = ref(new Set<() => void>())
+  const shouldUpdateViewHooks = ref(new Set<(reason?: string) => void>())
 
-  const onShouldUpdateView = (hook: () => void) => {
+  const onShouldUpdateView = (hook: (reason?: string) => void) => {
     shouldUpdateViewHooks.value.add(hook)
     return () => {
       shouldUpdateViewHooks.value.delete(hook)
     }
   }
 
-  function shouldUpdateView(reason = 'unknown') {
-    const event: BroadcastChannelEventShouldUpdateView = {
-      type: 'vrm-should-update-view',
-      href: typeof window !== 'undefined' ? window.location.href : 'unknown',
-      instanceId: `${vrmViewUpdateRuntimeInstanceId}:${++vrmViewUpdateMessageSequence}`,
-      reason,
-      sentAt: Date.now(),
-      stack: new Error('[VRM shouldUpdateView]').stack,
-    }
-
-    post(event)
-    shouldUpdateViewHooks.value.forEach((hook) => hook())
+  function shouldUpdateView(reason?: string) {
+    post({ type: 'should-update-view', reason })
+    shouldUpdateViewHooks.value.forEach((hook) => hook(reason))
   }
 
   watch(data, (event) => {
-    if (event?.type === 'vrm-should-update-view') {
-      shouldUpdateViewHooks.value.forEach((hook) => hook())
+    if (!event) return
+    if (event.type === 'should-update-view') {
+      shouldUpdateViewHooks.value.forEach((hook) => hook(event.reason))
     }
   })
 
-  // === Scene runtime orchestration ===
-  const scenePhase = ref<ScenePhase>('pending')
-  const sceneTransactionDepth = ref(0)
-  const sceneMutationLocked = computed(() => scenePhase.value !== 'mounted' || sceneTransactionDepth.value > 0)
+  const scale = useLocalStorage('settings/stage-ui-three/scale', 1)
+  const lastModelSrc = useLocalStorage('settings/stage-ui-three/lastModelSrc', '')
+  const lastModelIdentity = useLocalStorage('settings/stage-ui-three/lastModelIdentity', '')
 
-  function setScenePhase(phase: ScenePhase) {
-    scenePhase.value = phase
-  }
-
-  function beginSceneBindingTransaction() {
-    sceneTransactionDepth.value += 1
-  }
-
-  function endSceneBindingTransaction() {
-    sceneTransactionDepth.value = Math.max(0, sceneTransactionDepth.value - 1)
-  }
-
-  function resetSceneBindingTransactions() {
-    sceneTransactionDepth.value = 0
-  }
-
-  // === Legacy / shared controls ===
-  const lastCommittedModelSrc = useLocalStorage('settings/stage-ui-three/lastModelSrc', '')
-
-  // === Model lifecycle / bootstrap ===
-  // These values are recalculated from the currently bound model instance whenever
-  // a new bootstrap payload is committed into the scene.
   const modelSize = useLocalStorage('settings/stage-ui-three/modelSize', { x: 0, y: 0, z: 0 })
   const modelOrigin = useLocalStorage('settings/stage-ui-three/modelOrigin', { x: 0, y: 0, z: 0 })
+  const modelOffset = useLocalStorage('settings/stage-ui-three/modelOffset', { x: 0, y: 0, z: 0 })
+  const modelRotationY = useLocalStorage('settings/stage-ui-three/modelRotationY', 0)
+
+  const cameraFOV = useLocalStorage('settings/stage-ui-three/cameraFOV', 40)
+  const cameraPosition = useLocalStorage('settings/stage-ui-three/camera-position', { x: 0, y: 0, z: -1 })
+  const cameraDistance = useLocalStorage('settings/stage-ui-three/cameraDistance', 0)
+
+  const interactionMode = useLocalStorage<InteractionMode>('settings/stage-ui-three/interaction-mode', 'orbit')
+
+  const lookAtTarget = useLocalStorage('settings/stage-ui-three/lookAtTarget', { x: 0, y: 0, z: 0 })
+  const trackingMode = useLocalStorage('settings/stage-ui-three/trackingMode', 'none' as 'camera' | 'mouse' | 'none')
   const eyeHeight = useLocalStorage('settings/stage-ui-three/eyeHeight', 0)
 
-  // === View state ===
-  /** current runtime pose. may be recalculated when a new model bootstrap is applied. */
-  const lookAtTarget = useLocalStorage('settings/stage-ui-three/lookAtTarget', { x: 0, y: 0, z: 0 })
+  const availableExpressions = useLocalStorage<string[]>('settings/stage-ui-three/availableExpressions', [])
+  const activeExpressions = useLocalStorage<Record<string, number>>('settings/stage-ui-three/activeExpressions', {})
+  // Maps VRM expression names to ACT emotion slots (e.g., { "anger": "angry", "pixel_glasses": "cool" })
+  const emotionMappings = useLocalStorage<Record<string, string>>('settings/stage-ui-three/emotionMappings', {})
+  // Quick-toggle favorite expression (e.g., "pixel_glasses")
+  const favoriteExpression = useLocalStorage<string>('settings/stage-ui-three/favoriteExpression', '')
+
+  const vrmIdleAnimation = useLocalStorage<string>('settings/stage-ui-three/vrmIdleAnimation', 'idleLoop')
+  const vrmIdleCycleEnabled = useLocalStorage<boolean>('settings/stage-ui-three/vrmIdleCycleEnabled', false)
 
   function resetModelStore() {
-    scenePhase.value = 'pending'
-    sceneTransactionDepth.value = 0
-
-    lastCommittedModelSrc.value = ''
     modelSize.value = { x: 0, y: 0, z: 0 }
     modelOrigin.value = { x: 0, y: 0, z: 0 }
+    modelOffset.value = { x: 0, y: 0, z: 0 }
     modelRotationY.value = 0
 
-    cameraPosition.value = { ...DEFAULT_CAMERA_POSITION }
-    supportedControl.forEach((c) => setViewControl(c))
+    cameraFOV.value = 40
+    cameraPosition.value = { x: 0, y: 0, z: -1 }
+    cameraDistance.value = 0
 
     lookAtTarget.value = { x: 0, y: 0, z: 0 }
     trackingMode.value = 'none'
     eyeHeight.value = 0
+
+    availableExpressions.value = []
+    activeExpressions.value = {}
+    emotionMappings.value = {}
+    favoriteExpression.value = ''
+    vrmIdleAnimation.value = 'idleLoop'
+    vrmIdleCycleEnabled.value = false
+    activeVrm.value = null
+    activeVrmParser.value = null
+    activeVrmIdentity.value = ''
+    detectedWardrobe.value = { active: null, siblings: [], texIndex: null }
   }
 
-  // === Environment / lighting / render settings ===
+  // === Tactile Interaction State ===
+  const detectedWardrobe = ref<{
+    active: { display: string; raw: string } | null
+    siblings: { display: string; raw: string }[]
+    texIndex: number | null
+  }>({ active: null, siblings: [], texIndex: null })
+
+  // === Lighting ===
   const directionalLightPosition = useLocalStorage('settings/stage-ui-three/scenes/scene/directional-light/position', {
     x: 0,
     y: 0,
@@ -242,11 +222,9 @@ export const useModelStore = defineStore('modelStore', () => {
   const skyBoxIntensity = useLocalStorage('settings/stage-ui-three/skyBoxIntensity', 0.1)
 
   return {
-    scenePhase,
-    sceneTransactionDepth,
-    sceneMutationLocked,
-
-    lastCommittedModelSrc,
+    scale,
+    lastModelSrc,
+    lastModelIdentity,
 
     modelSize,
     modelOrigin,
@@ -256,6 +234,7 @@ export const useModelStore = defineStore('modelStore', () => {
     cameraFOV,
     cameraPosition,
     cameraDistance,
+    interactionMode,
 
     directionalLightPosition,
     directionalLightTarget,
@@ -280,12 +259,20 @@ export const useModelStore = defineStore('modelStore', () => {
     skyBoxSrc,
     skyBoxIntensity,
 
+    availableExpressions,
+    activeExpressions,
+    emotionMappings,
+    favoriteExpression,
+    vrmIdleAnimation,
+    vrmIdleCycleEnabled,
+
+    activeVrm,
+    activeVrmParser,
+    activeVrmIdentity,
+    detectedWardrobe,
+
     onShouldUpdateView,
     shouldUpdateView,
-    setScenePhase,
-    beginSceneBindingTransaction,
-    endSceneBindingTransaction,
-    resetSceneBindingTransactions,
 
     resetModelStore,
   }

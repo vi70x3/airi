@@ -70,6 +70,53 @@ const ALIYUN_NLS_REGIONS = [
   'cn-shenzhen-internal',
 ] as const
 
+/**
+ * Represents a speech expression tag that can be used to control
+ * the emotional tone or style of speech synthesis output.
+ */
+export interface SpeechExpressionTagInfo {
+  /** Category this expression tag belongs to (e.g., "emotion", "tone"). */
+  category: string
+  /** The tag identifier used to reference this expression in synthesis requests. */
+  tag: string
+  /** Optional human-readable description of what this expression tag does. */
+  description?: string
+}
+
+/**
+ * Represents a speech mannerism — a distinctive speech pattern or quirk
+ * that can be applied to synthesized speech output.
+ */
+export interface SpeechMannerismInfo {
+  /** Unique identifier for this mannerism. */
+  id: string
+  /** Human-readable label displayed in the UI. */
+  label: string
+  /** Optional description of how this mannerism affects speech output. */
+  description?: string
+}
+
+/**
+ * Describes the speech synthesis capabilities of a provider.
+ * Used by the UI to determine which speech controls to display.
+ */
+export interface SpeechCapabilitiesInfo {
+  /** Whether the provider supports voice presets. */
+  supportsPresets?: boolean
+  /** Whether the provider supports expression tags for emotional control. */
+  supportsExpressionTags?: boolean
+  /** Whether the provider supports speech mannerisms. */
+  supportsMannerisms?: boolean
+  /** Available expression tags, if supported. */
+  expressionTags?: SpeechExpressionTagInfo[]
+  /** Available speech mannerisms, if supported. */
+  mannerisms?: SpeechMannerismInfo[]
+  /** Whether the provider supports SSML input for speech synthesis. */
+  supportsSSML?: boolean
+  /** Whether the provider supports pitch adjustment. */
+  supportsPitch?: boolean
+}
+
 type AliyunNlsRegion = (typeof ALIYUN_NLS_REGIONS)[number]
 
 export interface ProviderMetadata {
@@ -144,6 +191,7 @@ export interface ProviderMetadata {
       config: Record<string, unknown>,
       hooks?: { onProgress?: (progress: ProgressInfo) => Promise<void> | void },
     ) => Promise<void>
+    getSpeechCapabilities?: (config: Record<string, unknown>) => Promise<SpeechCapabilitiesInfo | null>
   }
   validators: {
     /**
@@ -190,36 +238,69 @@ export interface ProviderMetadata {
   beginnerRecommended?: boolean
 }
 
+/**
+ * Information about an AI model available from a provider.
+ */
 export interface ModelInfo {
+  /** Unique identifier for the model. */
   id: string
+  /** Human-readable display name for the model. */
   name: string
+  /** Identifier of the provider that offers this model. */
   provider: string
+  /** Optional description of the model's capabilities or intended use. */
   description?: string
+  /** List of capability tags (e.g., "vision", "reasoning", "function-calling"). */
   capabilities?: string[]
+  /** Maximum context length in tokens, if applicable. */
   contextLength?: number
+  /** Whether this model is deprecated and should not be used for new configurations. */
   deprecated?: boolean
 }
 
+/**
+ * Information about a voice available for speech synthesis.
+ */
 export interface VoiceInfo {
+  /** Unique identifier for the voice. */
   id: string
+  /** Human-readable display name for the voice. */
   name: string
+  /** Identifier of the provider that offers this voice. */
   provider: string
+  /** List of model IDs this voice is compatible with. */
   compatibleModels?: string[]
+  /** Optional description of the voice's characteristics. */
   description?: string
+  /** Gender of the voice (e.g., "male", "female", "neutral"). */
   gender?: string
+  /** Whether this voice is deprecated. */
   deprecated?: boolean
+  /** URL to a preview audio sample of the voice. */
   previewURL?: string
+  /** List of languages this voice supports. */
   languages: {
+    /** BCP-47 language code (e.g., "en-US", "ja-JP"). */
     code: string
+    /** Human-readable language name (e.g., "English (US)", "Japanese"). */
     title: string
   }[]
 }
 
+/**
+ * Runtime state for a provider instance, tracking configuration status,
+ * available models, and loading state.
+ */
 export interface ProviderRuntimeState {
+  /** Whether the provider has been successfully configured and validated. */
   isConfigured: boolean
+  /** Hash of the last validated credential set, used to detect changes. */
   validatedCredentialHash?: string
+  /** List of models available from this provider. */
   models: ModelInfo[]
+  /** Whether models are currently being fetched from the provider. */
   isLoadingModels: boolean
+  /** Error message if model loading failed, or null if no error. */
   modelLoadError: string | null
 }
 

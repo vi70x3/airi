@@ -15,6 +15,7 @@ import { routes } from 'vue-router/auto-routes'
 import App from './App.vue'
 
 import { i18n } from './modules/i18n'
+import { initializeCharaCardDownloadBridge } from './bridges/chara-card-download'
 
 import '@unocss/reset/tailwind.css'
 import 'splitpanes/dist/splitpanes.css'
@@ -43,6 +44,9 @@ const router = createRouter({
   // TODO: vite-plugin-vue-layouts is long deprecated, replace with another layout solution
   routes: setupLayouts(routes as RouteRecordRaw[]),
 })
+
+// Initialize the chara card download bridge
+initializeCharaCardDownloadBridge()
 
 createApp(App)
   .use(MotionPlugin)

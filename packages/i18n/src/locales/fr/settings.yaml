@@ -4,8 +4,7 @@ animations:
   stage-transitions:
     title: Désactiver les transitions de scène
   use-page-specific-transitions:
-    description: >-
-      Certaines pages auront leurs propres transitions, ceci remplacera les transitions de scène.
+    description: Certaines pages auront leurs propres transitions, ceci remplacera les transitions de scène.
     title: Utiliser les transitions spécifiques à chaque page
 dialogs:
   onboarding:
@@ -34,12 +33,9 @@ dialogs:
     next: Suivant
     retry: Réessayer
     credentialsSafeLabel: Gardez vos clés API et identifiants en sécurité !
-    credentialsSafeLocal: >-
-      AIRI fonctionne entièrement en local sur votre PC et nous ne volerons jamais vos identifiants pour les fournisseurs d'IA / LLM. Gardez toutefois à l'esprit que vos clés API sont des informations sensibles. Veillez à les conserver en lieu sûr et à ne les partager avec personne.
-    credentialsSafeOpenSource: >-
-      AIRI est open source sur {github}, si vous souhaitez vérifier comment nous gérons vos identifiants, n'hésitez pas à inspecter notre code.
-    enableChatCheck: >-
-      Autoriser AIRI à envoyer un message "ping" au premier modèle de chat disponible pour vérifier sa disponibilité
+    credentialsSafeLocal: AIRI fonctionne entièrement en local sur votre PC et nous ne volerons jamais vos identifiants pour les fournisseurs d'IA / LLM. Gardez toutefois à l'esprit que vos clés API sont des informations sensibles. Veillez à les conserver en lieu sûr et à ne les partager avec personne.
+    credentialsSafeOpenSource: AIRI est open source sur {github}, si vous souhaitez vérifier comment nous gérons vos identifiants, n'hésitez pas à inspecter notre code.
+    enableChatCheck: Autoriser AIRI à envoyer un message "ping" au premier modèle de chat disponible pour vérifier sa disponibilité
     start: Commençons !
     loginPrompt: Connectez-vous pour utiliser le fournisseur officiel AIRI et bénéficier de la meilleure expérience.
     loginAction: Se connecter
@@ -48,8 +44,7 @@ dialogs:
     buyFlux: Charge Flux
     select-model: Choisissez un modèle
     no-models: Pas de modèle disponible
-    no-models-help: >-
-      Veuillez revenir à l’étape précédente et vérifier votre clé API, ou bien vérifier la connexion réseau.
+    no-models-help: Veuillez revenir à l’étape précédente et vérifier votre clé API, ou bien vérifier la connexion réseau.
     permissions:
       title: Notifications
       description: Vous pouvez autoriser les notifications maintenant ou continuer et les configurer plus tard.
@@ -82,8 +77,9 @@ dialogs:
     last-submitted-preview: Last Submitted Payload Preview
 language:
   title: Langage
-  description: |
-    Langue de l'interface. Vous pourrez définir la langue des personnages plus tard.
+  description: "Langue de l'interface. Vous pourrez définir la langue des personnages plus tard.
+
+    "
 controls-island:
   icon-size:
     title: Taille des icônes de l'îlot de contrôle
@@ -94,8 +90,7 @@ controls-island:
 analytics:
   notice:
     title: Statistiques d'utilisation
-    description: >-
-      AIRI collecte des statistiques d'utilisation anonymes pour nous aider à comprendre comment l'application est utilisée et améliorer sa stabilité. Aucune donnée personnelle n'est collectée.
+    description: AIRI collecte des statistiques d'utilisation anonymes pour nous aider à comprendre comment l'application est utilisée et améliorer sa stabilité. Aucune donnée personnelle n'est collectée.
     privacyPrefix: Read the
     privacyLink: politique de confidentialité
     onboardingHint: Vous pouvez désactiver les statistiques plus tard dans Paramètres > Système > Général.
@@ -108,10 +103,14 @@ analytics:
 model-select:
   panel-callout:
     support-status-header: We support both 2D and 3D models
-    support-status: >
-      Click {select-button} to select or import models. Currently, {zip} (for Live2D models) and {vrm} (for VRM models) are supported.
-    model-type-example: >
-      Neuro-sama uses 2D model driven by framework developed by Live2D Inc, while Grok Ani (in Grok Companion) uses 3D model driven by VRM / MMD open formats.
+    support-status:
+      'Click {select-button} to select or import models. Currently, {zip} (for Live2D models) and {vrm} (for VRM models) are supported.
+
+      '
+    model-type-example:
+      'Neuro-sama uses 2D model driven by framework developed by Live2D Inc, while Grok Ani (in Grok Companion) uses 3D model driven by VRM / MMD open formats.
+
+      '
   select-model:
     title: Model Selector
     button: Select model
@@ -137,14 +136,16 @@ live2d:
     title: Échelle et position
     scale: Échelle
     x: X
-    'y': 'Y'
+    y: Y
   switch-to-vrm:
     title: Passer à l’avatar 3D ?
     change-to-vrm: Cliquez ici pour passer aux paramètres de l’avatar 3D (VRM)
   theme-color-from-model:
     title: Extraire les couleurs du modèle
-    description: >
-      Extract prominent colors from current rendering canvas. Click on the color to apply it to AIRI. Try to extract multiple times, with the model in different poses, if the colors are not desirable.
+    description:
+      'Extract prominent colors from current rendering canvas. Click on the color to apply it to AIRI. Try to extract multiple times, with the model in different poses, if the colors are not desirable.
+
+      '
     button-extract:
       title: Extraire
   animation:
@@ -182,15 +183,16 @@ live2d:
       title: FPS
       description: Limit rendering frame rate
       options:
-        unlimited: '∞'
+        unlimited: ∞
     shadow: Drop shadow
     reset-parameters: Reset to default parameters
   clear-model-cache: Clear model cache
   expressions:
     title: Expressions
     override-toggle: Expression system
-    sdk-preset-preserved-notice: >
-      SDK expression manager and eye blink are preserved when disabled.
+    sdk-preset-preserved-notice: 'SDK expression manager and eye blink are preserved when disabled.
+
+      '
     no-expression: No expressions available for this model.
     llm-integration-wip: LLM tool integration is not yet wired up.
     save-default: Save expression defaults
@@ -334,28 +336,25 @@ pages:
         scenario: Vous vous êtes récemment réveillé et avez tout oublié de votre vie passée.
         systemprompt: Vous recevrez des messages et y répondrez comme un humain.
         posthistoryinstructions: N’oubliez pas d’imiter un humain.
-      modules_info: >-
-        Modules de configuration pour cette carte de personnage. Si non défini, la configuration par défaut sera utilisée.
+      modules_info: Modules de configuration pour cette carte de personnage. Si non défini, la configuration par défaut sera utilisée.
       use_default: Utiliser la configuration par défaut
       use_default_not_configured: Utiliser la configuration par défaut (non configurée)
       fields_info:
-        subtitle: >-
-          Vous pouvez ici ajouter des détails sur le personnage que vous créez, expliquer son histoire et son contexte, et comment vos interactions devraient être répondues.
+        subtitle: Vous pouvez ici ajouter des détails sur le personnage que vous créez, expliquer son histoire et son contexte, et comment vos interactions devraient être répondues.
         name: Le nom officiel du personnage.
         nickname: Vous pouvez également donner un surnom qui sera utilisé en priorité.
         description: Description du personnage.
         notes: Si vous souhaitez ajouter des notes personnelles.
-        personality: >-
-          Décrivez ici la personnalité de votre personnage. Timide ? Curieux ? Autre chose ?
+        personality: Décrivez ici la personnalité de votre personnage. Timide ? Curieux ? Autre chose ?
         scenario: Quel est l’environnement ? Quelle est la situation actuelle ?
         greetings_field: Salutations
         greetings: Comment votre personnage devrait dire « bonjour » ?
         systemprompt: Expliquez ici à l’IA comment elle doit répondre lorsqu’on l’interroge.
         posthistoryinstructions: Placez ici tout ce que l’IA doit lire après l’historique des messages.
-        version: >-
-          Version de la carte, vous devez l’incrémenter si vous apportez des modifications par rapport à une carte précédente.
+        version: Version de la carte, vous devez l’incrémenter si vous apportez des modifications par rapport à une carte précédente.
         consciousness_model: Sélectionnez le modèle de conscience (modèle AB) pour ce caractère.
         speech_model: Sélectionnez le modèle de synthèse vocale et la voix pour ce personnage.
+        identity_prompting: These fields all help define the character, but they are not separate runtime layers today. System Prompt is used in AIRI's active prompt assembly. Post-History Instructions is currently kept mainly for card compatibility and future prompt-pipeline work, so you can fill it out now without expecting distinct live behavior yet.
       errors:
         name: Le nom doit être valide ou non vide.
         version: 'Erreur : numéro de version invalide !'
@@ -366,6 +365,7 @@ pages:
         posthistoryinstructions: 'Erreur : le prompt post-historique est requis.'
         invalid_artistry_json: 'Error: Artistry provider options contains invalid JSON.'
       none: None
+      preferred_background: Preferred Scene/Background
     modules: Modules
     name_asc: Nom (A-Z)
     name_desc: Nom (Z-A)
@@ -387,6 +387,89 @@ pages:
     try_different_search: Essayez un autre terme de recherche
     upload: Téléverser
     upload_desc: Cliquez ou glissez un fichier pour téléverser
+    tabs:
+      acting: Acting
+      modules: Modules
+      artistry: Artistry
+      proactivity: Proactivity
+      generation: Generation
+    acting:
+      modelExpressionPrompt: Model Expression Prompt
+      speechExpressionPrompt: Speech Expression Prompt
+      speechMannerismPrompt: Speech Mannerism Prompt
+      idleAnimations: Idle Animations
+    heartbeats:
+      enabled: Enable Heartbeats
+      intervalMinutes: Interval (minutes)
+      prompt: Heartbeat Prompt
+      injectIntoPrompt: Inject into Prompt
+      useAsLocalGate: Use as Local Gate
+      contextOptions:
+        windowHistory: Window History
+        systemLoad: System Load
+        usageMetrics: Usage Metrics
+      schedule:
+        start: Start Time
+        end: End Time
+      respectSchedule: Respect Schedule
+    dreamState:
+      enabled: Enable Dream State
+      strictAfkGating: Strict AFK Gating
+      journalingThreshold: Journaling Threshold
+      maxSessionsPerDay: Max Sessions per Day
+      sessionTimeoutMinutes: Session Timeout (minutes)
+      afkThresholdMinutes: AFK Threshold (minutes)
+      minConversationTurns: Min Conversation Turns
+    generation:
+      enabled: Enable Generation
+      provider: Provider
+      model: Model
+      maxTokens: Max Tokens
+      temperature: Temperature
+      topP: Top P
+      contextWidth: Context Width
+      reasoningFallback: Reasoning Fallback
+      compaction:
+        strategy: Compaction Strategy
+        minKeepTurns: Min Keep Turns
+      advanced: Advanced
+    grounding:
+      enabled: Enable Grounding
+      description: Grounding Description
+    artistry:
+      provider: Artistry Provider
+      model: Artistry Model
+      promptPrefix: Prompt Prefix
+      widgetInstruction: Widget Instructions
+      spawnMode: Spawn Mode
+      autonomousEnabled: Autonomous Enabled
+      autonomousThreshold: Autonomous Threshold
+      autonomousTarget: Autonomous Target
+      autonomousMonitorEnabled: Monitor Enabled
+      autonomousHistoryDepth: History Depth
+      options: Provider Options
+    import:
+      title: Import Card
+      step1: Name & Model
+      step2: Consciousness
+      step3: Speech
+      step4: Defaults
+      source:
+        file: From File
+        url: From URL
+        clipboard: From Clipboard
+      fileInputLabel: Select or drop a card file
+      supportedFormats: Supports JSON and PNG character cards
+      next: Next
+      back: Back
+      finish: Finish Import
+    export:
+      json: Export JSON
+      png: Export PNG
+      compatibility:
+        title: Compatibility Notes
+        airi: AIRI-native format with full extension data
+        sillytavern: SillyTavern chara_card_v2 compatible
   memory:
     description: Endroit où les souvenirs sont stockés et organisés
     title: Mémoire
@@ -429,7 +512,7 @@ pages:
         reset: Réinitialiser les données du bureau
     confirmations:
       tooltip: Êtes-vous sûr(e) ?
-      'yes': 'Oui'
+      'yes': Oui
     status:
       exported: Sessions de discussion exportées.
       imported: Sessions de discussion importées.
@@ -471,23 +554,19 @@ pages:
           title: Paramètres
           parameters:
             adaptive_threshold:
-              description: >-
-                Appliquer ou non des seuils adaptatifs basés sur la variance du signal dans le temps.
+              description: Appliquer ou non des seuils adaptatifs basés sur la variance du signal dans le temps.
               label: Seuil adaptatif
             buffer_duration:
               description: Durée du tampon (buffer) d'analyse interne.
               label: Durée du tampon
             envelope_filter_frequency:
-              description: >-
-                Fréquence du filtre d'enveloppe appliqué pour lisser les variations d'énergie.
+              description: Fréquence du filtre d'enveloppe appliqué pour lisser les variations d'énergie.
               label: Fréquence du filtre d'enveloppe
             highpass_filter_frequency:
-              description: >-
-                Fréquence du filtre passe-haut appliqué pour réduire les basses fréquences comme les bruits de sub-basses.
+              description: Fréquence du filtre passe-haut appliqué pour réduire les basses fréquences comme les bruits de sub-basses.
               label: Fréquence du filtre passe-haut
             lowpass_filter_frequency:
-              description: >-
-                Fréquence du filtre passe-bas appliqué pour réduire les hautes fréquences comme les voix.
+              description: Fréquence du filtre passe-bas appliqué pour réduire les hautes fréquences comme les voix.
               label: Fréquence du filtre passe-bas
             min_beat_interval:
               description: BPM maximum ou intervalle minimum entre les battements détectés.
@@ -610,17 +689,14 @@ pages:
       description: Jouer à Minecraft !
       title: Minecraft
       enable: Activer l'intégration Minecraft
-      enable-description: >-
-        Include Minecraft self-knowledge in Stage chat turns and keep passive runtime visibility enabled.
+      enable-description: Include Minecraft self-knowledge in Stage chat turns and keep passive runtime visibility enabled.
       configured: Minecraft est correctement configuré !
       read-only:
         title: Shell en lecture seule
-        description: >-
-          Stage currently exposes Minecraft as a passive shell. Runtime status and traffic are visible here, but service configuration stays in the Minecraft service files.
+        description: Stage currently exposes Minecraft as a passive shell. Runtime status and traffic are visible here, but service configuration stays in the Minecraft service files.
       setup:
         title: Configuration
-        description: >-
-          Vous pouvez trouver les instructions de configuration du bot dans le fichier suivant
+        description: Vous pouvez trouver les instructions de configuration du bot dans le fichier suivant
       runtime:
         title: Observed runtime
         connection: Connexion
@@ -637,6 +713,14 @@ pages:
         no-runtime-context: Aucun contexte de bot observé pour l'instant
         last-context-seconds: 'Dernier contexte du bot : il y a {seconds}s'
         last-context-stale: 'Dernier contexte du bot : Obsolète'
+      server-address: Server Address
+      server-address-description: The IP address or hostname of the Minecraft server
+      server-address-placeholder: Enter server address (e.g., localhost or play.example.com)
+      server-port: Server Port
+      server-port-description: The port number of the Minecraft server (default 25565)
+      username: Username
+      username-description: Your username in the Minecraft server
+      username-placeholder: Enter your Minecraft username
     hearing:
       description: Configurer la reconnaissance vocale
       title: Audition
@@ -646,13 +730,17 @@ pages:
             description: Sélectionnez le fournisseur de reconnaissance vocale approprié
           confidence-threshold:
             title: Confidence Threshold
-            description: >-
-              Filter out low-confidence transcriptions to reduce Whisper hallucinations. Values closer to 0 are more strict; drag to the leftmost to disable. Only effective for providers supporting Whisper API (e.g., OpenAI, Groq).
+            description: Filter out low-confidence transcriptions to reduce Whisper hallucinations. Values closer to 0 are more strict; drag to the leftmost to disable. Only effective for providers supporting Whisper API (e.g., OpenAI, Groq).
             disabled: Désactivé
-            verbose-json-note: >-
-              Remarque : Si votre fournisseur ne prend pas en charge les réponses verbose_json, ce paramètre n'aura aucun effet.
-            verbose-json-unsupported: >-
-              Your provider did not return verbose_json segments. Confidence filtering had no effect on the last transcription.
+            verbose-json-note: "Remarque : Si votre fournisseur ne prend pas en charge les réponses verbose_json, ce paramètre n'aura aucun effet."
+            verbose-json-unsupported: Your provider did not return verbose_json segments. Confidence filtering had no effect on the last transcription.
+          hotkey:
+            title: Mic Toggle Hotkey
+            description: Toggle the microphone using a keyboard lock key (Scroll, Caps, or Num Lock). Your keyboard's LED will stay in sync with AIRI's mic status.
+            options:
+              scroll: Scroll Lock
+              caps: Caps Lock
+              num: Num Lock
     memory-long-term:
       description: Paramètres et gestion de la mémoire à long terme
       title: Mémoire à long terme
@@ -668,6 +756,37 @@ pages:
       token-description: Votre jeton de bot Discord
       token-placeholder: Entrez votre jeton de bot Discord
       configured: Discord est correctement configuré !
+      connectivity:
+        title: Connectivity
+        status: Status
+        ping: Ping
+        connected: Connected
+        disconnected: Disconnected
+        connecting: Connecting...
+        error: Error
+        no-guilds: Not connected to any servers.
+      actions:
+        start: Start Service
+        stop: Stop Service
+        restart: Restart Service
+        force-sync: Force Card Sync
+        simulate: Simulate Message
+        test-auth: Test Auth
+        clear-log: Clear Log
+      presence:
+        title: Active Presence
+        guild: Server
+        channel: Channel
+        no-active: No active presence.
+      dev-console:
+        title: Developer Console
+        empty: No events recorded yet. Start the service to begin capturing.
+      simulate-dialog:
+        username: Username
+        username-placeholder: Enter a username...
+        content: Message
+        content-placeholder: Enter a test message...
+        send: Send
     speech:
       description: Synthèse vocale
       sections:
@@ -695,11 +814,11 @@ pages:
             search_voices_placeholder: Rechercher des voix...
             search_voices_results: '{count} voix trouvées sur {total}'
             unsupported_voice_warning_title: Aucune voix prise en charge
-            unsupported_voice_warning_content: >-
-              Essayez un autre modèle ou fournisseur. Nous travaillons à prendre en charge toutes les voix pour ce modèle dès que possible. En cas d'urgence, n'hésitez pas à nous le signaler sur GitHub : https://github.com/moeru-ai/airi/issues.
+            unsupported_voice_warning_content: "Essayez un autre modèle ou fournisseur. Nous travaillons à prendre en charge toutes les voix pour ce modèle dès que possible. En cas d'urgence, n'hésitez pas à nous le signaler sur GitHub : https://github.com/moeru-ai/airi/issues."
             show_less: Afficher moins
             show_more: Afficher plus
             title: Fournisseur
+            search_results: Found {count} of {total} models
           voice-settings:
             input-ssml:
               placeholder: Entrez le texte SSML...
@@ -743,7 +862,7 @@ pages:
         empty: Nothing here yet. Add one below!
       add:
         title: New
-        description: 'Fill in a new server, then click "Save and restart" — it''ll move into "Configured" above.'
+        description: Fill in a new server, then click "Save and restart" — it'll move into "Configured" above.
         pending-badge: Unsaved
       status:
         unknown: not loaded
@@ -763,6 +882,10 @@ pages:
         cancel: Cancel
         expand: Expand
         collapse: Collapse
+        apply-restart: Save and restart stdio MCP
+        refresh: Refresh Status
+        install: Install
+        installed: Installed
       fields:
         identifier:
           label: Identifier
@@ -775,7 +898,11 @@ pages:
         args:
           label: Arguments
           description: One per line, in order.
-          placeholder: "-y\nsome-package-name\n/tmp"
+          placeholder: '-y
+
+            some-package-name
+
+            /tmp'
         cwd:
           label: Working directory
           description: Optional directory used as the process working directory.
@@ -789,7 +916,7 @@ pages:
           label: Enabled
       json:
         title: Edit mcp.json
-        description: 'Edit the raw JSON directly. Click "Apply" to load it into the form, then "Save and restart" to write it to disk.'
+        description: Edit the raw JSON directly. Click "Apply" to load it into the form, then "Save and restart" to write it to disk.
         placeholder: Paste mcp.json here…
       test:
         title: Test connection
@@ -804,7 +931,7 @@ pages:
         success: Connected! Found {count} tools in {ms}ms.
         failure: Connection failed after {ms}ms
       errors:
-        empty-identifier: Server # {index} is missing an identifier.
+        empty-identifier: Server
         duplicate-identifier: Identifier "{name}" is used more than once — names need to be unique.
         empty-command: '"{name}" is missing a command.'
         invalid-shape: That doesn't look like a valid mcp.json — the root needs an "mcpServers" field.
@@ -812,6 +939,17 @@ pages:
         opened: Opened {path} in your file manager
         json-applied: JSON applied to the form. Click "Save and restart" to persist it to disk.
         restarted: All restarted! {started} started, {failed} failed, {skipped} skipped.
+        install-success: '{name} installed successfully'
+      tabs:
+        manage: Manage
+        discover: Discover
+      search-placeholder: Search MCP servers (e.g. Google Search, Filesystem)...
+      dashboard:
+        tool-count: '{count} tools available'
+      registry:
+        loading: Loading registry...
+        stars: '{count} stars'
+        no-results: No servers found for "{query}"
   flux:
     title: Flux
     buy: Charge
@@ -852,8 +990,7 @@ pages:
         validation:
           failed:
             title: Veuillez vérifier les paramètres du fournisseur, la validation a échoué.
-            description: >-
-              Vous pouvez enregistrer la configuration actuelle si vous souhaitez continuer.
+            description: Vous pouvez enregistrer la configuration actuelle si vous souhaitez continuer.
             action: Enregistrer quand même
         config:
           common:
@@ -865,8 +1002,7 @@ pages:
                   placeholder: sk-...
                 base-url:
                   label: URL de base
-                  description: >-
-                    L'URL de base utilisée pour se connecter au service distant. Ressemble souvent à http://localhost:11434/v1 ou https://exemple.com/v1.
+                  description: L'URL de base utilisée pour se connecter au service distant. Ressemble souvent à http://localhost:11434/v1 ou https://exemple.com/v1.
                   placeholder: URL de base...
                 headers:
                   label: En-têtes HTTP personnalisés
@@ -877,8 +1013,10 @@ pages:
                     placeholder: Valeur
                 thinking-mode:
                   label: Mode de réflexion
-                  description: >
-                    Contrôle le comportement de réflexion d'Ollama. GPT-OSS ne prend en charge que les niveaux bas/moyen/haut (low/medium/high).
+                  description:
+                    "Contrôle le comportement de réflexion d'Ollama. GPT-OSS ne prend en charge que les niveaux bas/moyen/haut (low/medium/high).
+
+                    "
                   options:
                     auto: Auto (par défaut du fournisseur)
                     disable: Désactiver
@@ -911,8 +1049,7 @@ pages:
                 validators:
                   openai-compatible-check-connectivity:
                     label: Configuration supplémentaire requise pour Ollama
-                    content: >-
-                      Nous sommes désolés que le test de connectivité pour Ollama ait échoué. Ne vous inquiétez pas, une configuration supplémentaire est nécessaire pour les instances Ollama. Vous devez définir explicitement <code>OLLAMA_HOST</code> lors du lancement de l'application ou du serveur CLI Ollama. Pour plus d'informations, consultez le <a href="https://airi.moeru.ai/docs/en/docs/manual/integrations/providers/chat/ollama">guide d'intégration Ollama</a>.
+                    content: Nous sommes désolés que le test de connectivité pour Ollama ait échoué. Ne vous inquiétez pas, une configuration supplémentaire est nécessaire pour les instances Ollama. Vous devez définir explicitement <code>OLLAMA_HOST</code> lors du lancement de l'application ou du serveur CLI Ollama. Pour plus d'informations, consultez le <a href="https://airi.moeru.ai/docs/en/docs/manual/integrations/providers/chat/ollama">guide d'intégration Ollama</a>.
     common:
       continueAnyway: Continuer quand même
       goToModelSelection: Sélectionnez un Modèle
@@ -957,8 +1094,7 @@ pages:
         description: Speech (text-to-speech) model providers. e.g. ElevenLabs, Azure Speech.
       transcription:
         title: Transcription
-        description: >-
-          Transcription (speech-to-text) model providers. e.g. Whisper.cpp, OpenAI, Azure Speech
+        description: Transcription (speech-to-text) model providers. e.g. Whisper.cpp, OpenAI, Azure Speech
       artistry:
         title: Artistry
         description: Image generation and design model providers. e.g. ComfyUI, Replicate.
@@ -971,13 +1107,14 @@ pages:
             description: Google AI Studio Image Preview.
     helpinfo:
       title: Première fois ici ?
-      description: >
-        AIRI nécessite qu’au moins un fournisseur {chat} soit configuré pour penser et se comporter correctement. On peut le considérer comme le cerveau des personnages vivant dans le système AIRI.
+      description:
+        'AIRI nécessite qu’au moins un fournisseur {chat} soit configuré pour penser et se comporter correctement. On peut le considérer comme le cerveau des personnages vivant dans le système AIRI.
+
+        '
     explained:
       chat: Fournisseurs de modèles de génération de texte, par ex. OpenRouter, OpenAI, Ollama.
       Speech: Fournisseurs de modèles de synthèse vocale, par ex. ElevenLabs, Azure Speech.
-      Transcription: >-
-        Fournisseurs de modèles de transcription (speech-to-text), par ex. Whisper.cpp, OpenAI, Azure Speech
+      Transcription: Fournisseurs de modèles de transcription (speech-to-text), par ex. Whisper.cpp, OpenAI, Azure Speech
     description: LLMs, fournisseurs vocaux, etc.
     provider:
       app-local-audio-transcription:
@@ -1012,14 +1149,11 @@ pages:
         helpinfo:
           title: Avant de commencer
           description:
-            part1: >-
-              Bien qu’Anthropic ait récemment annoncé un support bêta pour la compatibilité SDK OpenAI
+            part1: Bien qu’Anthropic ait récemment annoncé un support bêta pour la compatibilité SDK OpenAI
             part2: (vous pouvez en lire plus ici)
             part3: en raison de détails d’implémentation
-            part4: >-
-              des restrictions non alignées avec le SDK OpenAI, il n’est actuellement pas possible d’utiliser ce fournisseur dans le navigateur.
-            part5: >-
-              Si vous devez utiliser ce fournisseur, vous aurez besoin d’un proxy backend dédié comme une fonction serverless
+            part4: des restrictions non alignées avec le SDK OpenAI, il n’est actuellement pas possible d’utiliser ce fournisseur dans le navigateur.
+            part5: Si vous devez utiliser ce fournisseur, vous aurez besoin d’un proxy backend dédié comme une fonction serverless
             part6: ou des services contournant le CORS pour éviter les restrictions CORS.
       cloudflare-workers-ai:
         description: cloudflare.com
@@ -1196,8 +1330,7 @@ pages:
               description: Les modèles plus petits se chargent plus rapidement mais peuvent avoir une qualité légèrement inférieure.
         models:
           fp32-webgpu:
-            description: >-
-              Modèle en pleine précision utilisant WebGPU - Recommandé pour les appareils compatibles
+            description: Modèle en pleine précision utilisant WebGPU - Recommandé pour les appareils compatibles
           fp32:
             description: Modèle en pleine précision
           fp16:
@@ -1366,29 +1499,24 @@ pages:
       placeholder: ws://localhost:6121/ws
     server-hostname:
       label: Expose On Network
-      description: >-
-        Choose whether the AIRI gateway only listens on this device or can be reached from your local network.
+      description: Choose whether the AIRI gateway only listens on this device or can be reached from your local network.
       advanced-label: Bind Hostname
-      advanced-description: >-
-        Use a specific hostname or IP address when you need manual network binding.
+      advanced-description: Use a specific hostname or IP address when you need manual network binding.
       options:
         this-device: This device
         all: All
         advanced: Advanced
     server-auth-token:
       label: Auth Token
-      description: >-
-        Security token required by remote clients that connect to this gateway. When left empty, AIRI generates a new token automatically.
+      description: Security token required by remote clients that connect to this gateway. When left empty, AIRI generates a new token automatically.
       placeholder: Auto-generate
     qr:
       title: Connect from Stage Pocket
-      description: >-
-        Scan this QR code from Stage Pocket to try all reachable local network addresses and save the first working one.
+      description: Scan this QR code from Stage Pocket to try all reachable local network addresses and save the first working one.
       refresh: Refresh
       image-alt: AIRI server channel connection QR code
       candidates: Candidate addresses
-      token-hint: >-
-        The QR code includes the auth token so Stage Pocket can authenticate after connecting. Do not share it publicly.
+      token-hint: The QR code includes the auth token so Stage Pocket can authenticate after connecting. Do not share it publicly.
       errors:
         title: QR code unavailable
         unavailable: Failed to prepare the connection QR code.
@@ -1459,8 +1587,7 @@ pages:
                 title: Polaroid
                 description: Utilitaire pour prendre des clichés de modèles
               context-flow:
-                description: >-
-                  Inspecter les mises à jour de contexte entrantes et les événements de flux de chat sortants
+                description: Inspecter les mises à jour de contexte entrantes et les événements de flux de chat sortants
               websocket-inspector:
                 title: Inspecteur WebSocket
                 description: Inspecter le trafic WebSocket brut
@@ -1469,8 +1596,7 @@ pages:
                 description: Tester l'extraction de couleurs
               providers-transcription-realtime-aliyun-nls:
                 title: Transcripteur temps réel Aliyun
-                description: >-
-                  Diffuser l'audio du microphone vers Aliyun NLS et inspecter les transcriptions en direct
+                description: Diffuser l'audio du microphone vers Aliyun NLS et inspecter les transcriptions en direct
               performance-playground:
                 title: Zone d'essai de performance
                 description: Expressions VRM + synchro labiale TTS
@@ -1539,8 +1665,7 @@ pages:
                 color-6: Jaune d'or
                 color-7: Bleu azur
                 color-8: Ocre
-              description: >-
-                Couleurs traditionnelles chinoises, issues des textiles anciens, de la porcelaine et des peintures
+              description: Couleurs traditionnelles chinoises, issues des textiles anciens, de la porcelaine et des peintures
               title: Couleurs traditionnelles chinoises
           title: Préréglages de couleurs
     title: Apparence
@@ -1579,8 +1704,9 @@ sections:
       title: Général
 theme:
   title: Thème
-  description: |
-    Changez le thème de base d’AIRI, mode clair ou mode sombre.
+  description: 'Changez le thème de base d’AIRI, mode clair ou mode sombre.
+
+    '
 title: Paramètres
 voices: Voix
 vrm:
@@ -1597,12 +1723,14 @@ vrm:
     model-info-x: Largeur (X)
     model-info-y: Hauteur (Y)
     model-info-z: Profondeur (Z)
-    tips: |
-      Modifiez la position initiale du modèle VRM.
+    tips: 'Modifiez la position initiale du modèle VRM.
+
       Les axes de coordonnées sont visualisés.
+
+      '
     scale: Échelle
     x: Décalage X
-    'y': Décalage Y
+    y: Décalage Y
     z: Décalage Z
     fov: FOV (degré)
     rotation-y: Rotation (axe Y)
@@ -1629,7 +1757,7 @@ spine:
     title: Scale And Position
     scale: Scale
     x: X
-    'y': 'Y'
+    y: Y
   theme-color-from-model:
     title: Extract colors from model
     button-extract:
@@ -1654,9 +1782,7 @@ spine:
       unlimited: Unlimited
 websocket-secure-enabled:
   title: Activer WebSocket Sécurisé (WSS)
-  description: >-
-    Activez WSS (WebSocket Secure) pour permettre les connexions HTTPS pour mobile (pocket) en mode développement. Cela générera automatiquement un certificat auto-signé.
+  description: Activez WSS (WebSocket Secure) pour permettre les connexions HTTPS pour mobile (pocket) en mode développement. Cela générera automatiquement un certificat auto-signé.
 wip:
   title: Travail en cours
-  description: >-
-    Cette fonctionnalité est actuellement en cours de développement et n'est pas disponible publiquement. Revenez ultérieurement pour les mises-à-jour futures.
+  description: Cette fonctionnalité est actuellement en cours de développement et n'est pas disponible publiquement. Revenez ultérieurement pour les mises-à-jour futures.

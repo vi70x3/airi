@@ -3,6 +3,7 @@ import type { AiriCard } from '@proj-airi/stage-ui/stores/modules/airi-card'
 
 import DOMPurify from 'dompurify'
 
+import { useArtistryStore } from '@proj-airi/stage-ui/stores/modules/artistry'
 import { useBackgroundStore } from '@proj-airi/stage-ui/stores/background'
 import { useAiriCardStore } from '@proj-airi/stage-ui/stores/modules/airi-card'
 import { useConsciousnessStore } from '@proj-airi/stage-ui/stores/modules/consciousness'
@@ -31,6 +32,7 @@ const cardStore = useAiriCardStore()
 const consciousnessStore = useConsciousnessStore()
 const speechStore = useSpeechStore()
 const backgroundStore = useBackgroundStore()
+const artistryStore = useArtistryStore()
 
 const { removeCard } = cardStore
 const { activeCardId } = storeToRefs(cardStore)
@@ -41,6 +43,7 @@ const {
   activeSpeechModel: defaultSpeechModel,
   activeSpeechVoiceId: defaultVoiceId,
 } = storeToRefs(speechStore)
+const { activeProvider: defaultArtistryProvider } = storeToRefs(artistryStore)
 
 const isRefreshingGallery = ref(false)
 
@@ -86,6 +89,118 @@ const characterSettings = computed(() => {
     scenario: selectedCard.value.scenario,
     systemPrompt: selectedCard.value.systemPrompt,
     postHistoryInstructions: selectedCard.value.postHistoryInstructions,
+  }
+})
+
+// Get acting settings
+const actingSettings = computed(() => {
+  if (!selectedCard.value || !selectedCard.value.extensions?.airi?.acting) {
+    return {
+      modelExpressionPrompt: '',
+      speechExpressionPrompt: '',
+      speechMannerismPrompt: '',
+      idleAnimations: [] as string[],
+    }
+  }
+
+  const acting = selectedCard.value.extensions.airi.acting
+  return {
+    modelExpressionPrompt: acting.modelExpressionPrompt || '',
+    speechExpressionPrompt: acting.speechExpressionPrompt || '',
+    speechMannerismPrompt: acting.speechMannerismPrompt || '',
+    idleAnimations: acting.idleAnimations || [],
+  }
+})
+
+// Get artistry settings
+const artistrySettings = computed(() => {
+  if (!selectedCard.value || !selectedCard.value.extensions?.airi?.artistry) {
+    return {
+      provider: '',
+      model: '',
+      promptPrefix: '',
+      widgetInstruction: '',
+      spawnMode: '',
+      autonomousEnabled: false,
+      autonomousThreshold: 0,
+      autonomousTarget: '',
+      autonomousMonitorEnabled: false,
+      autonomousHistoryDepth: 0,
+      options: '',
+    }
+  }
+
+  const artistry = selectedCard.value.extensions.airi.artistry
+  return {
+    provider: artistry.provider || '',
+    model: artistry.model || '',
+    promptPrefix: artistry.promptPrefix || '',
+    widgetInstruction: artistry.widgetInstruction || '',
+    spawnMode: artistry.spawnMode || '',
+    autonomousEnabled: artistry.autonomousEnabled ?? false,
+    autonomousThreshold: artistry.autonomousThreshold ?? 0,
+    autonomousTarget: artistry.autonomousTarget || '',
+    autonomousMonitorEnabled: artistry.autonomousMonitorEnabled ?? false,
+    autonomousHistoryDepth: artistry.autonomousHistoryDepth ?? 0,
+    options: artistry.options ? JSON.stringify(artistry.options) : '',
+  }
+})
+
+// Get proactivity settings (heartbeats, dream state, grounding)
+const proactivitySettings = computed(() => {
+  const airiExt = selectedCard.value?.extensions?.airi
+  return {
+    heartbeatsEnabled: airiExt?.heartbeats?.enabled ?? false,
+    heartbeatsIntervalMinutes: airiExt?.heartbeats?.intervalMinutes ?? 0,
+    heartbeatsPrompt: airiExt?.heartbeats?.prompt ?? '',
+    heartbeatsInjectIntoPrompt: airiExt?.heartbeats?.injectIntoPrompt ?? false,
+    heartbeatsUseAsLocalGate: airiExt?.heartbeats?.useAsLocalGate ?? false,
+    heartbeatsScheduleStart: airiExt?.heartbeats?.schedule?.start ?? '',
+    heartbeatsScheduleEnd: airiExt?.heartbeats?.schedule?.end ?? '',
+    heartbeatsContextWindowHistory: airiExt?.heartbeats?.contextOptions?.windowHistory ?? false,
+    heartbeatsContextSystemLoad: airiExt?.heartbeats?.contextOptions?.systemLoad ?? false,
+    heartbeatsContextUsageMetrics: airiExt?.heartbeats?.contextOptions?.usageMetrics ?? false,
+    heartbeatsRespectSchedule: airiExt?.heartbeats?.respectSchedule ?? false,
+    dreamStateEnabled: airiExt?.dreamState?.enabled ?? false,
+    dreamStateStrictAfkGating: airiExt?.dreamState?.strictAfkGating ?? false,
+    dreamStateJournalingThreshold: airiExt?.dreamState?.journalingThreshold ?? '',
+    dreamStateMaxSessionsPerDay: airiExt?.dreamState?.maxSessionsPerDay ?? 0,
+    dreamStateSessionTimeoutMinutes: airiExt?.dreamState?.sessionTimeoutMinutes ?? 0,
+    groundingEnabled: airiExt?.groundingEnabled ?? false,
+  }
+})
+
+// Get generation settings
+const generationSettings = computed(() => {
+  if (!selectedCard.value || !selectedCard.value.extensions?.airi?.generation) {
+    return {
+      enabled: false,
+      provider: '',
+      model: '',
+      maxTokens: undefined as number | undefined,
+      temperature: undefined as number | undefined,
+      topP: undefined as number | undefined,
+      contextWidth: undefined as number | undefined,
+      reasoningFallback: false,
+      advanced: '',
+      compactionStrategy: '',
+      compactionMinKeepTurns: undefined as number | undefined,
+    }
+  }
+
+  const gen = selectedCard.value.extensions.airi.generation
+  return {
+    enabled: gen.enabled ?? false,
+    provider: gen.provider || '',
+    model: gen.model || '',
+    maxTokens: gen.known?.maxTokens,
+    temperature: gen.known?.temperature,
+    topP: gen.known?.topP,
+    contextWidth: gen.known?.contextWidth,
+    reasoningFallback: gen.known?.reasoningFallback ?? false,
+    advanced: gen.advanced ? JSON.stringify(gen.advanced) : '',
+    compactionStrategy: gen.compaction?.strategy || '',
+    compactionMinKeepTurns: gen.compaction?.minKeepTurns,
   }
 })
 
@@ -202,6 +317,46 @@ const tabs = computed<Tab[]>(() => {
     label: 'Gallery',
     icon: 'i-solar:gallery-linear',
   })
+
+  // Acting tab - show if card has acting config
+  if (selectedCard.value?.extensions?.airi?.acting) {
+    availableTabs.push({
+      id: 'acting',
+      label: 'Acting',
+      icon: 'i-solar:mask-happly-bold-duotone',
+    })
+  }
+
+  // Artistry tab - show if card has artistry config
+  if (selectedCard.value?.extensions?.airi?.artistry) {
+    availableTabs.push({
+      id: 'artistry',
+      label: 'Artistry',
+      icon: 'i-solar:gallery-bold-duotone',
+    })
+  }
+
+  // Proactivity tab - show if card has heartbeats, dream state, or grounding
+  if (
+    selectedCard.value?.extensions?.airi?.heartbeats ||
+    selectedCard.value?.extensions?.airi?.dreamState ||
+    selectedCard.value?.extensions?.airi?.groundingEnabled !== undefined
+  ) {
+    availableTabs.push({
+      id: 'proactivity',
+      label: 'Proactivity',
+      icon: 'i-solar:heart-pulse-bold-duotone',
+    })
+  }
+
+  // Generation tab - show if card has generation config
+  if (selectedCard.value?.extensions?.airi?.generation) {
+    availableTabs.push({
+      id: 'generation',
+      label: 'Generation',
+      icon: 'i-solar:tuning-square-bold-duotone',
+    })
+  }
 
   return availableTabs
 })
@@ -622,6 +777,413 @@ function getModuleDisplayValue(value: string | undefined, defaultValue: string |
                     class="absolute left-1 top-1 rounded bg-primary-500 p-1 text-white shadow-lg"
                   >
                     <div class="i-solar:pin-bold text-[10px]" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Acting -->
+            <div v-if="activeTab === 'acting'">
+              <div flex="~ col" gap-4>
+                <div v-if="actingSettings.modelExpressionPrompt" flex="~ col" gap-2>
+                  <span flex="~ row" items-center gap-2 text-sm text-neutral-500 dark:text-neutral-400>
+                    <div i-solar:mask-happly-bold-duotone />
+                    Model Expression Prompt
+                  </span>
+                  <div
+                    bg="white/60 dark:black/30"
+                    border="~ neutral-200/50 dark:neutral-700/30"
+                    max-h-40
+                    overflow-auto
+                    whitespace-pre-line
+                    rounded-lg
+                    p-3
+                    text-sm
+                    text-neutral-700
+                    dark:text-neutral-300
+                    v-html="highlightTagToHtml(actingSettings.modelExpressionPrompt)"
+                  />
+                </div>
+                <div v-if="actingSettings.speechExpressionPrompt" flex="~ col" gap-2>
+                  <span flex="~ row" items-center gap-2 text-sm text-neutral-500 dark:text-neutral-400>
+                    <div i-lucide:message-square />
+                    Speech Expression Prompt
+                  </span>
+                  <div
+                    bg="white/60 dark:black/30"
+                    border="~ neutral-200/50 dark:neutral-700/30"
+                    max-h-40
+                    overflow-auto
+                    whitespace-pre-line
+                    rounded-lg
+                    p-3
+                    text-sm
+                    text-neutral-700
+                    dark:text-neutral-300
+                    v-html="highlightTagToHtml(actingSettings.speechExpressionPrompt)"
+                  />
+                </div>
+                <div v-if="actingSettings.speechMannerismPrompt" flex="~ col" gap-2>
+                  <span flex="~ row" items-center gap-2 text-sm text-neutral-500 dark:text-neutral-400>
+                    <div i-solar:chat-round-line-bold-duotone />
+                    Speech Mannerism Prompt
+                  </span>
+                  <div
+                    bg="white/60 dark:black/30"
+                    border="~ neutral-200/50 dark:neutral-700/30"
+                    max-h-40
+                    overflow-auto
+                    whitespace-pre-line
+                    rounded-lg
+                    p-3
+                    text-sm
+                    text-neutral-700
+                    dark:text-neutral-300
+                    v-html="highlightTagToHtml(actingSettings.speechMannerismPrompt)"
+                  />
+                </div>
+                <div v-if="actingSettings.idleAnimations.length > 0" flex="~ col" gap-2>
+                  <span flex="~ row" items-center gap-2 text-sm text-neutral-500 dark:text-neutral-400>
+                    <div i-solar:play-circle-broken />
+                    Idle Animations
+                  </span>
+                  <div flex="~ row" gap-2 flex-wrap>
+                    <span
+                      v-for="anim in actingSettings.idleAnimations"
+                      :key="anim"
+                      class="inline-block rounded-full bg-primary-100 px-3 py-1 text-xs text-primary-700 font-medium dark:bg-primary-900/40 dark:text-primary-300"
+                    >
+                      {{ anim }}
+                    </span>
+                  </div>
+                </div>
+                <div
+                  v-if="
+                    !actingSettings.modelExpressionPrompt &&
+                    !actingSettings.speechExpressionPrompt &&
+                    !actingSettings.speechMannerismPrompt &&
+                    actingSettings.idleAnimations.length === 0
+                  "
+                  class="rounded-lg border border-dashed border-neutral-200 bg-neutral-50/50 p-6 text-center text-sm text-neutral-500 dark:border-neutral-700/50 dark:bg-neutral-900/50 dark:text-neutral-400"
+                >
+                  No acting configuration set for this card.
+                </div>
+              </div>
+            </div>
+
+            <!-- Artistry -->
+            <div v-if="activeTab === 'artistry'">
+              <div grid="~ cols-1 sm:cols-2" gap-4>
+                <div
+                  flex="~ col"
+                  bg="white/60 dark:black/30"
+                  gap-1
+                  rounded-lg
+                  p-3
+                  border="~ neutral-200/50 dark:neutral-700/30"
+                >
+                  <span flex="~ row" items-center gap-2 text-sm text-neutral-500 dark:text-neutral-400>
+                    <div i-lucide:image />
+                    Artistry Provider
+                  </span>
+                  <div truncate font-medium>
+                    {{ getModuleDisplayValue(artistrySettings.provider, defaultArtistryProvider) }}
+                  </div>
+                </div>
+                <div
+                  flex="~ col"
+                  bg="white/60 dark:black/30"
+                  gap-1
+                  rounded-lg
+                  p-3
+                  border="~ neutral-200/50 dark:neutral-700/30"
+                >
+                  <span flex="~ row" items-center gap-2 text-sm text-neutral-500 dark:text-neutral-400>
+                    <div i-lucide:cpu />
+                    Artistry Model
+                  </span>
+                  <div truncate font-medium>
+                    {{ artistrySettings.model || 'None' }}
+                  </div>
+                </div>
+                <div
+                  flex="~ col"
+                  bg="white/60 dark:black/30"
+                  gap-1
+                  rounded-lg
+                  p-3
+                  border="~ neutral-200/50 dark:neutral-700/30"
+                  class="sm:col-span-2"
+                >
+                  <span flex="~ row" items-center gap-2 text-sm text-neutral-500 dark:text-neutral-400>
+                    <div i-lucide:type />
+                    Prompt Prefix
+                  </span>
+                  <div font-medium>
+                    {{ artistrySettings.promptPrefix || 'None' }}
+                  </div>
+                </div>
+                <div
+                  flex="~ col"
+                  bg="white/60 dark:black/30"
+                  gap-1
+                  rounded-lg
+                  p-3
+                  border="~ neutral-200/50 dark:neutral-700/30"
+                >
+                  <span flex="~ row" items-center gap-2 text-sm text-neutral-500 dark:text-neutral-400>
+                    <div i-solar:widget-4-bold-duotone />
+                    Spawn Mode
+                  </span>
+                  <div truncate font-medium>
+                    {{ artistrySettings.spawnMode || 'None' }}
+                  </div>
+                </div>
+                <div
+                  flex="~ col"
+                  bg="white/60 dark:black/30"
+                  gap-1
+                  rounded-lg
+                  p-3
+                  border="~ neutral-200/50 dark:neutral-700/30"
+                >
+                  <span flex="~ row" items-center gap-2 text-sm text-neutral-500 dark:text-neutral-400>
+                    <div i-solar:eye-bold-duotone />
+                    Autonomous
+                  </span>
+                  <div truncate font-medium>
+                    {{ artistrySettings.autonomousEnabled ? 'Enabled' : 'Disabled' }}
+                    <template v-if="artistrySettings.autonomousEnabled">
+                      (Threshold: {{ artistrySettings.autonomousThreshold }}, Target:
+                      {{ artistrySettings.autonomousTarget }})
+                    </template>
+                  </div>
+                </div>
+                <div
+                  v-if="artistrySettings.options"
+                  flex="~ col"
+                  bg="white/60 dark:black/30"
+                  gap-1
+                  rounded-lg
+                  p-3
+                  border="~ neutral-200/50 dark:neutral-700/30"
+                  class="sm:col-span-2"
+                >
+                  <span flex="~ row" items-center gap-2 text-sm text-neutral-500 dark:text-neutral-400>
+                    <div i-lucide:braces />
+                    Provider Options (JSON)
+                  </span>
+                  <pre class="whitespace-pre-wrap break-all text-sm font-mono text-neutral-700 dark:text-neutral-300">{{
+                    artistrySettings.options
+                  }}</pre>
+                </div>
+              </div>
+            </div>
+
+            <!-- Proactivity -->
+            <div v-if="activeTab === 'proactivity'">
+              <div flex="~ col" gap-4>
+                <!-- Heartbeats -->
+                <div bg="white/60 dark:black/30" border="~ neutral-200/50 dark:neutral-700/30" rounded-lg p-4>
+                  <div flex="~ row" items-center gap-2 mb-3>
+                    <div i-solar:heart-pulse-bold-duotone />
+                    <h3 text-sm font-medium>Heartbeats</h3>
+                    <span
+                      class="ml-auto rounded-full px-2 py-0.5 text-xs font-medium"
+                      :class="
+                        proactivitySettings.heartbeatsEnabled
+                          ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300'
+                          : 'bg-neutral-100 text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400'
+                      "
+                    >
+                      {{ proactivitySettings.heartbeatsEnabled ? 'Enabled' : 'Disabled' }}
+                    </span>
+                  </div>
+                  <div v-if="proactivitySettings.heartbeatsEnabled" grid="~ cols-1 sm:cols-2" gap-3 text-sm>
+                    <div>
+                      <span class="text-neutral-500 dark:text-neutral-400">Interval:</span>
+                      <span class="ml-1 font-medium">{{ proactivitySettings.heartbeatsIntervalMinutes }} min</span>
+                    </div>
+                    <div>
+                      <span class="text-neutral-500 dark:text-neutral-400">Schedule:</span>
+                      <span class="ml-1 font-medium">
+                        {{ proactivitySettings.heartbeatsScheduleStart }} -
+                        {{ proactivitySettings.heartbeatsScheduleEnd }}
+                      </span>
+                    </div>
+                    <div>
+                      <span class="text-neutral-500 dark:text-neutral-400">Inject into prompt:</span>
+                      <span class="ml-1 font-medium">
+                        {{ proactivitySettings.heartbeatsInjectIntoPrompt ? 'Yes' : 'No' }}
+                      </span>
+                    </div>
+                    <div>
+                      <span class="text-neutral-500 dark:text-neutral-400">Use as local gate:</span>
+                      <span class="ml-1 font-medium">
+                        {{ proactivitySettings.heartbeatsUseAsLocalGate ? 'Yes' : 'No' }}
+                      </span>
+                    </div>
+                    <div class="sm:col-span-2">
+                      <span class="text-neutral-500 dark:text-neutral-400">Context:</span>
+                      <span class="ml-1 font-medium">
+                        <template v-if="proactivitySettings.heartbeatsContextWindowHistory">History</template>
+                        <template v-if="proactivitySettings.heartbeatsContextSystemLoad">, System Load</template>
+                        <template v-if="proactivitySettings.heartbeatsContextUsageMetrics">, Usage Metrics</template>
+                        <template
+                          v-if="
+                            !proactivitySettings.heartbeatsContextWindowHistory &&
+                            !proactivitySettings.heartbeatsContextSystemLoad &&
+                            !proactivitySettings.heartbeatsContextUsageMetrics
+                          "
+                        >
+                          None
+                        </template>
+                      </span>
+                    </div>
+                    <div v-if="proactivitySettings.heartbeatsPrompt" class="sm:col-span-2 flex flex-col gap-1">
+                      <span class="text-neutral-500 dark:text-neutral-400">Prompt:</span>
+                      <div
+                        class="max-h-24 overflow-auto whitespace-pre-line rounded bg-neutral-50 p-2 text-xs text-neutral-700 dark:bg-neutral-900/50 dark:text-neutral-300"
+                        v-html="highlightTagToHtml(proactivitySettings.heartbeatsPrompt)"
+                      />
+                    </div>
+                  </div>
+                  <div v-else class="text-sm text-neutral-500 dark:text-neutral-400">
+                    Heartbeats are not enabled for this card.
+                  </div>
+                </div>
+
+                <!-- Dream State -->
+                <div bg="white/60 dark:black/30" border="~ neutral-200/50 dark:neutral-700/30" rounded-lg p-4>
+                  <div flex="~ row" items-center gap-2 mb-3>
+                    <div i-solar:sleeping-circle-bold-duotone />
+                    <h3 text-sm font-medium>Dream State</h3>
+                    <span
+                      class="ml-auto rounded-full px-2 py-0.5 text-xs font-medium"
+                      :class="
+                        proactivitySettings.dreamStateEnabled
+                          ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300'
+                          : 'bg-neutral-100 text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400'
+                      "
+                    >
+                      {{ proactivitySettings.dreamStateEnabled ? 'Enabled' : 'Disabled' }}
+                    </span>
+                  </div>
+                  <div v-if="proactivitySettings.dreamStateEnabled" grid="~ cols-1 sm:cols-2" gap-3 text-sm>
+                    <div>
+                      <span class="text-neutral-500 dark:text-neutral-400">Strict AFK gating:</span>
+                      <span class="ml-1 font-medium">
+                        {{ proactivitySettings.dreamStateStrictAfkGating ? 'Yes' : 'No' }}
+                      </span>
+                    </div>
+                    <div>
+                      <span class="text-neutral-500 dark:text-neutral-400">Journaling threshold:</span>
+                      <span class="ml-1 font-medium">{{ proactivitySettings.dreamStateJournalingThreshold }}</span>
+                    </div>
+                    <div>
+                      <span class="text-neutral-500 dark:text-neutral-400">Max sessions/day:</span>
+                      <span class="ml-1 font-medium">{{ proactivitySettings.dreamStateMaxSessionsPerDay }}</span>
+                    </div>
+                    <div>
+                      <span class="text-neutral-500 dark:text-neutral-400">Session timeout:</span>
+                      <span class="ml-1 font-medium">
+                        {{ proactivitySettings.dreamStateSessionTimeoutMinutes }} min
+                      </span>
+                    </div>
+                  </div>
+                  <div v-else class="text-sm text-neutral-500 dark:text-neutral-400">
+                    Dream state is not enabled for this card.
+                  </div>
+                </div>
+
+                <!-- Grounding -->
+                <div bg="white/60 dark:black/30" border="~ neutral-200/50 dark:neutral-700/30" rounded-lg p-4>
+                  <div flex="~ row" items-center gap-2>
+                    <div i-solar:shield-check-bold-duotone />
+                    <h3 text-sm font-medium>Grounding</h3>
+                    <span
+                      class="ml-auto rounded-full px-2 py-0.5 text-xs font-medium"
+                      :class="
+                        proactivitySettings.groundingEnabled
+                          ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300'
+                          : 'bg-neutral-100 text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400'
+                      "
+                    >
+                      {{ proactivitySettings.groundingEnabled ? 'Enabled' : 'Disabled' }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Generation -->
+            <div v-if="activeTab === 'generation'">
+              <div flex="~ col" gap-4>
+                <div bg="white/60 dark:black/30" border="~ neutral-200/50 dark:neutral-700/30" rounded-lg p-4>
+                  <div flex="~ row" items-center gap-2 mb-3>
+                    <div i-solar:tuning-square-bold-duotone />
+                    <h3 text-sm font-medium>Card Generation</h3>
+                    <span
+                      class="ml-auto rounded-full px-2 py-0.5 text-xs font-medium"
+                      :class="
+                        generationSettings.enabled
+                          ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300'
+                          : 'bg-neutral-100 text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400'
+                      "
+                    >
+                      {{ generationSettings.enabled ? 'Enabled' : 'Disabled' }}
+                    </span>
+                  </div>
+                  <div v-if="generationSettings.enabled" grid="~ cols-1 sm:cols-2" gap-3 text-sm>
+                    <div>
+                      <span class="text-neutral-500 dark:text-neutral-400">Provider:</span>
+                      <span class="ml-1 font-medium">{{ generationSettings.provider || 'None' }}</span>
+                    </div>
+                    <div>
+                      <span class="text-neutral-500 dark:text-neutral-400">Model:</span>
+                      <span class="ml-1 font-medium">{{ generationSettings.model || 'None' }}</span>
+                    </div>
+                    <div>
+                      <span class="text-neutral-500 dark:text-neutral-400">Max tokens:</span>
+                      <span class="ml-1 font-medium">{{ generationSettings.maxTokens ?? 'Default' }}</span>
+                    </div>
+                    <div>
+                      <span class="text-neutral-500 dark:text-neutral-400">Temperature:</span>
+                      <span class="ml-1 font-medium">{{ generationSettings.temperature ?? 'Default' }}</span>
+                    </div>
+                    <div>
+                      <span class="text-neutral-500 dark:text-neutral-400">Top P:</span>
+                      <span class="ml-1 font-medium">{{ generationSettings.topP ?? 'Default' }}</span>
+                    </div>
+                    <div>
+                      <span class="text-neutral-500 dark:text-neutral-400">Context width:</span>
+                      <span class="ml-1 font-medium">{{ generationSettings.contextWidth ?? 'Default' }}</span>
+                    </div>
+                    <div>
+                      <span class="text-neutral-500 dark:text-neutral-400">Reasoning fallback:</span>
+                      <span class="ml-1 font-medium">{{ generationSettings.reasoningFallback ? 'Yes' : 'No' }}</span>
+                    </div>
+                    <div>
+                      <span class="text-neutral-500 dark:text-neutral-400">Compaction:</span>
+                      <span class="ml-1 font-medium">{{ generationSettings.compactionStrategy || 'None' }}</span>
+                      <template
+                        v-if="generationSettings.compactionStrategy && generationSettings.compactionStrategy !== 'none'"
+                      >
+                        <span class="text-neutral-400">
+                          (keep {{ generationSettings.compactionMinKeepTurns ?? 15 }} turns)
+                        </span>
+                      </template>
+                    </div>
+                    <div v-if="generationSettings.advanced" class="sm:col-span-2 flex flex-col gap-1">
+                      <span class="text-neutral-500 dark:text-neutral-400">Advanced (JSON):</span>
+                      <pre
+                        class="whitespace-pre-wrap break-all text-xs font-mono text-neutral-700 dark:text-neutral-300"
+                        >{{ generationSettings.advanced }}</pre
+                      >
+                    </div>
+                  </div>
+                  <div v-else class="text-sm text-neutral-500 dark:text-neutral-400">
+                    Card generation is not enabled.
                   </div>
                 </div>
               </div>

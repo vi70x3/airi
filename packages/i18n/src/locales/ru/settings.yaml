@@ -4,8 +4,7 @@ animations:
   stage-transitions:
     title: Отключить переходы между сценами
   use-page-specific-transitions:
-    description: >-
-      Некоторые страницы имеют свои собственные переходы — они будут переопределять переходы сцен
+    description: Некоторые страницы имеют свои собственные переходы — они будут переопределять переходы сцен
     title: Использовать переходы для страниц
 dialogs:
   onboarding:
@@ -34,12 +33,9 @@ dialogs:
     next: Далее
     retry: Повторить
     credentialsSafeLabel: Держите ваши ключи API и учетные данные в безопасности!
-    credentialsSafeLocal: >-
-      AIRI работает исключительно локально в вашем ПК, и мы никогда не похитим ваши учетные данные для ИИ / LLM провайдеров. Но имейте в виду, что ваши ключи API являются конфиденциальной информацией. Убедитесь, что вы храните их в безопасности и никому не передаёте.
-    credentialsSafeOpenSource: >-
-      AIRI имеет открытый исходный код по адресу {github}. Если вы хотите проверить, как мы обрабатываем ваши учётные данные, смело изучайте наш код.
-    enableChatCheck: >-
-      Разрешить airi отправить "ping" сообщение первой доступной чат модели для проверки доступности
+    credentialsSafeLocal: AIRI работает исключительно локально в вашем ПК, и мы никогда не похитим ваши учетные данные для ИИ / LLM провайдеров. Но имейте в виду, что ваши ключи API являются конфиденциальной информацией. Убедитесь, что вы храните их в безопасности и никому не передаёте.
+    credentialsSafeOpenSource: AIRI имеет открытый исходный код по адресу {github}. Если вы хотите проверить, как мы обрабатываем ваши учётные данные, смело изучайте наш код.
+    enableChatCheck: Разрешить airi отправить "ping" сообщение первой доступной чат модели для проверки доступности
     start: Поехали!
     loginPrompt: Войдите, чтобы использовать официального провайдера AIRI для наилучшего опыта.
     loginAction: Войти
@@ -48,8 +44,7 @@ dialogs:
     buyFlux: Пополнить Flux
     select-model: Выберите модель
     no-models: Нет доступных моделей
-    no-models-help: >-
-      Вернитесь на предыдущий шаг и проверьте API-ключ или подключение к сети.
+    no-models-help: Вернитесь на предыдущий шаг и проверьте API-ключ или подключение к сети.
     permissions:
       title: Оповещения
       description: Вы можете разрешить уведомления сейчас или продолжить и настроить их позже.
@@ -82,8 +77,9 @@ dialogs:
     last-submitted-preview: Предпросмотр последней отправленной полезной нагрузки
 language:
   title: Язык
-  description: |
-    Язык интерфейса. Язык персонажей вы сможете настроить позже.
+  description: 'Язык интерфейса. Язык персонажей вы сможете настроить позже.
+
+    '
 controls-island:
   icon-size:
     title: Размер значка Управления островом
@@ -94,8 +90,7 @@ controls-island:
 analytics:
   notice:
     title: Аналитика использования
-    description: >-
-      AIRI собирает анонимную аналитику использования, чтобы помочь нам понять, как используется приложение, и улучшить стабильность. Личные данные не собираются.
+    description: AIRI собирает анонимную аналитику использования, чтобы помочь нам понять, как используется приложение, и улучшить стабильность. Личные данные не собираются.
     privacyPrefix: Прочтите
     privacyLink: политика конфиденциальности
     onboardingHint: Вы можете отключить аналитику позже в Настройках > Система > Общие.
@@ -108,10 +103,14 @@ analytics:
 model-select:
   panel-callout:
     support-status-header: Мы поддерживаем 2D и 3D модели
-    support-status: >
-      Нажмите {select-button}, чтобы выбрать или импортировать модели. В настоящее время поддерживаются {zip} (для моделей Live2D) и {vrm} (для моделей VRM).
-    model-type-example: >
-      Neuro-sama использует 2D модель, основанную на фреймворк, разработанной компанией Live2D Inc, В то время как Grok Ani (в компании Grok) использует 3D-модели, основанные на открытых форматах VRM / MMD.
+    support-status:
+      'Нажмите {select-button}, чтобы выбрать или импортировать модели. В настоящее время поддерживаются {zip} (для моделей Live2D) и {vrm} (для моделей VRM).
+
+      '
+    model-type-example:
+      'Neuro-sama использует 2D модель, основанную на фреймворк, разработанной компанией Live2D Inc, В то время как Grok Ani (в компании Grok) использует 3D-модели, основанные на открытых форматах VRM / MMD.
+
+      '
   select-model:
     title: Выбор модели
     button: Выбрать модель
@@ -137,14 +136,16 @@ live2d:
     title: Масштаб и позиция
     scale: Масштаб
     x: X
-    'y': 'Y'
+    y: Y
   switch-to-vrm:
     title: Переключиться на 3D-аватар?
     change-to-vrm: Нажмите здесь, чтобы переключиться на настройки 3D-аватара (VRM)
   theme-color-from-model:
     title: Извлечь цвета из модели
-    description: >
-      Извлечь видимые цвета из холста текущего рендеринга. Нажмите на цвет, чтобы применить его к AIRI. Попытаться извлечь несколько раз, используя модель в разных позах, если цвета не желательны.
+    description:
+      'Извлечь видимые цвета из холста текущего рендеринга. Нажмите на цвет, чтобы применить его к AIRI. Попытаться извлечь несколько раз, используя модель в разных позах, если цвета не желательны.
+
+      '
     button-extract:
       title: Извлечь
   animation:
@@ -182,15 +183,16 @@ live2d:
       title: FPS
       description: Ограничить скорость рендеринга кадров
       options:
-        unlimited: '∞'
+        unlimited: ∞
     shadow: Отбрасывать тень
     reset-parameters: Сброс к параметрам по умолчанию
   clear-model-cache: Очистка кеша
   expressions:
     title: Выражения
     override-toggle: Система выражений
-    sdk-preset-preserved-notice: >
-      Диспетчер выражений SDK и моргание глаз сохраняются, если выключены
+    sdk-preset-preserved-notice: 'Диспетчер выражений SDK и моргание глаз сохраняются, если выключены
+
+      '
     no-expression: Нет выражений для этой модели
     llm-integration-wip: Интеграция инструментов LLM еще не завершена
     save-default: Сохранить выражение по умолчанию
@@ -334,28 +336,25 @@ pages:
         scenario: Вы недавно проснулись и забыли всё о прошлой жизни.
         systemprompt: Вы будете получать сообщения, отвечайте на них как настоящий человек.
         posthistoryinstructions: Не забывайте подражать человеку.
-      modules_info: >-
-        Настроить модули для этой карты символов. Если не установлено, будет использоваться конфигурация модулей по умолчанию.
+      modules_info: Настроить модули для этой карты символов. Если не установлено, будет использоваться конфигурация модулей по умолчанию.
       use_default: Использовать по умолчанию
       use_default_not_configured: Использовать по умолчанию (не настроено)
       fields_info:
-        subtitle: >-
-          Здесь можно указать детали о создаваемом персонаже, описать его историю, контекст и то, как он должен отвечать на взаимодействия.
+        subtitle: Здесь можно указать детали о создаваемом персонаже, описать его историю, контекст и то, как он должен отвечать на взаимодействия.
         name: Формальное имя персонажа.
         nickname: Можно дать ник, который будет приоритетным.
         description: Описание персонажа.
         notes: Личные заметки.
-        personality: >-
-          Опишите личность персонажа. Застенчивый? Любопытный? Что угодно.
+        personality: Опишите личность персонажа. Застенчивый? Любопытный? Что угодно.
         scenario: Его местоположение? В какой он ситуации?
         greetings_field: Приветствия
         greetings: Как персонаж должен здороваться?
         systemprompt: Опишите, как AI должен отвечать на запросы.
         posthistoryinstructions: Укажите, что AI должен учитывать после истории сообщений.
-        version: >-
-          Версия карты. Увеличьте число, если изменяете предыдущую карту.
+        version: Версия карты. Увеличьте число, если изменяете предыдущую карту.
         consciousness_model: Выберите сознательную модель (AI модель) для этого персонажа.
         speech_model: Выберите модель синтеза речи и голос для этого персонажа.
+        identity_prompting: These fields all help define the character, but they are not separate runtime layers today. System Prompt is used in AIRI's active prompt assembly. Post-History Instructions is currently kept mainly for card compatibility and future prompt-pipeline work, so you can fill it out now without expecting distinct live behavior yet.
       errors:
         name: Имя должно быть корректным и непустым.
         version: 'Ошибка: неверная версия!'
@@ -366,6 +365,7 @@ pages:
         posthistoryinstructions: 'Ошибка: требуется post-history промпт.'
         invalid_artistry_json: 'Ошибка: Параметры провайдера Artistry содержат недопустимые JSON.'
       none: Отсутствует
+      preferred_background: Preferred Scene/Background
     modules: Модули
     name_asc: Имя (А-Я)
     name_desc: Имя (Я-А)
@@ -387,6 +387,89 @@ pages:
     try_different_search: Попробуйте другой поисковый запрос
     upload: Загрузить
     upload_desc: Нажмите или перетащите файл для загрузки
+    tabs:
+      acting: Acting
+      modules: Modules
+      artistry: Artistry
+      proactivity: Proactivity
+      generation: Generation
+    acting:
+      modelExpressionPrompt: Model Expression Prompt
+      speechExpressionPrompt: Speech Expression Prompt
+      speechMannerismPrompt: Speech Mannerism Prompt
+      idleAnimations: Idle Animations
+    heartbeats:
+      enabled: Enable Heartbeats
+      intervalMinutes: Interval (minutes)
+      prompt: Heartbeat Prompt
+      injectIntoPrompt: Inject into Prompt
+      useAsLocalGate: Use as Local Gate
+      contextOptions:
+        windowHistory: Window History
+        systemLoad: System Load
+        usageMetrics: Usage Metrics
+      schedule:
+        start: Start Time
+        end: End Time
+      respectSchedule: Respect Schedule
+    dreamState:
+      enabled: Enable Dream State
+      strictAfkGating: Strict AFK Gating
+      journalingThreshold: Journaling Threshold
+      maxSessionsPerDay: Max Sessions per Day
+      sessionTimeoutMinutes: Session Timeout (minutes)
+      afkThresholdMinutes: AFK Threshold (minutes)
+      minConversationTurns: Min Conversation Turns
+    generation:
+      enabled: Enable Generation
+      provider: Provider
+      model: Model
+      maxTokens: Max Tokens
+      temperature: Temperature
+      topP: Top P
+      contextWidth: Context Width
+      reasoningFallback: Reasoning Fallback
+      compaction:
+        strategy: Compaction Strategy
+        minKeepTurns: Min Keep Turns
+      advanced: Advanced
+    grounding:
+      enabled: Enable Grounding
+      description: Grounding Description
+    artistry:
+      provider: Artistry Provider
+      model: Artistry Model
+      promptPrefix: Prompt Prefix
+      widgetInstruction: Widget Instructions
+      spawnMode: Spawn Mode
+      autonomousEnabled: Autonomous Enabled
+      autonomousThreshold: Autonomous Threshold
+      autonomousTarget: Autonomous Target
+      autonomousMonitorEnabled: Monitor Enabled
+      autonomousHistoryDepth: History Depth
+      options: Provider Options
+    import:
+      title: Import Card
+      step1: Name & Model
+      step2: Consciousness
+      step3: Speech
+      step4: Defaults
+      source:
+        file: From File
+        url: From URL
+        clipboard: From Clipboard
+      fileInputLabel: Select or drop a card file
+      supportedFormats: Supports JSON and PNG character cards
+      next: Next
+      back: Back
+      finish: Finish Import
+    export:
+      json: Export JSON
+      png: Export PNG
+      compatibility:
+        title: Compatibility Notes
+        airi: AIRI-native format with full extension data
+        sillytavern: SillyTavern chara_card_v2 compatible
   memory:
     description: Хранилище и организация воспоминаний
     title: Память
@@ -429,7 +512,7 @@ pages:
         reset: Сбросить данные для рабочего стола
     confirmations:
       tooltip: Вы уверены?
-      'yes': 'Да'
+      'yes': Да
     status:
       exported: Чат сеансов экспортирован.
       imported: Чат сеансов импортирован.
@@ -471,23 +554,19 @@ pages:
           title: Параметры
           parameters:
             adaptive_threshold:
-              description: >-
-                Применить ли адаптивные пороговые значения, основанные на отклонении сигнала с течением времени.
+              description: Применить ли адаптивные пороговые значения, основанные на отклонении сигнала с течением времени.
               label: Адаптивный порог
             buffer_duration:
               description: Продолжительность буфера внутреннего анализа.
               label: Длительность буфера
             envelope_filter_frequency:
-              description: >-
-                Частота фильтра конверта, применяемого для плавных изменений энергии.
+              description: Частота фильтра конверта, применяемого для плавных изменений энергии.
               label: Частота фильтрации конвертов
             highpass_filter_frequency:
-              description: >-
-                Частота фильтра нижнего прохода, применяемая для снижения высоких частот, таких как вокал.
+              description: Частота фильтра нижнего прохода, применяемая для снижения высоких частот, таких как вокал.
               label: Частота фильтра низкого уровня
             lowpass_filter_frequency:
-              description: >-
-                Частота фильтра нижнего прохода, применяемая для снижения высоких частот, таких как вокал.
+              description: Частота фильтра нижнего прохода, применяемая для снижения высоких частот, таких как вокал.
               label: Частота фильтра низкого уровня
             min_beat_interval:
               description: Максимальный BPM или минимальный интервал между обнаруженными битами.
@@ -610,17 +689,14 @@ pages:
       description: Играем в Minecraft!
       title: Minecraft
       enable: Включить интеграцию Minecraft
-      enable-description: >-
-        Включать самопознание Minecraft в этапы чата и оставить включённой пассивную видимость среды выполнения.
+      enable-description: Включать самопознание Minecraft в этапы чата и оставить включённой пассивную видимость среды выполнения.
       configured: Minecraft настроен правильно!
       read-only:
         title: Оболочка только для чтения
-        description: >-
-          Этап в данный момент предоставляет Minecraft как пассивную оболочку. Статус среды выполнения и трафик видны здесь, но конфигурация сервиса остаётся в файлах сервиса Minecraft.
+        description: Этап в данный момент предоставляет Minecraft как пассивную оболочку. Статус среды выполнения и трафик видны здесь, но конфигурация сервиса остаётся в файлах сервиса Minecraft.
       setup:
         title: Установить
-        description: >-
-          Вы можете найти инструкции по настройке бота в следующем файле
+        description: Вы можете найти инструкции по настройке бота в следующем файле
       runtime:
         title: Наблюдаемая среда выполнения
         connection: Подключение
@@ -637,6 +713,14 @@ pages:
         no-runtime-context: Контекст бота пока не обнаружен
         last-context-seconds: 'Последний контекст бота: {seconds}с назад'
         last-context-stale: 'Последний контекст бота: устарел'
+      server-address: Server Address
+      server-address-description: The IP address or hostname of the Minecraft server
+      server-address-placeholder: Enter server address (e.g., localhost or play.example.com)
+      server-port: Server Port
+      server-port-description: The port number of the Minecraft server (default 25565)
+      username: Username
+      username-description: Your username in the Minecraft server
+      username-placeholder: Enter your Minecraft username
     hearing:
       description: Настройка распознавания речи
       title: Слух
@@ -646,13 +730,17 @@ pages:
             description: Выберите подходящего провайдера синтеза речи
           confidence-threshold:
             title: Порог уверенности
-            description: >-
-              Отфильтровывать транскрипции с низкой уверенностью, чтобы уменьшить галлюцинации Whisper. Значения ближе к 0 более строгие; перетащите в крайнее левое положение, чтобы отключить. Работает только для провайдеров, поддерживающих Whisper API (например, OpenAI, Groq).
+            description: Отфильтровывать транскрипции с низкой уверенностью, чтобы уменьшить галлюцинации Whisper. Значения ближе к 0 более строгие; перетащите в крайнее левое положение, чтобы отключить. Работает только для провайдеров, поддерживающих Whisper API (например, OpenAI, Groq).
             disabled: Отключено
-            verbose-json-note: >-
-              Примечание: Если ваш провайдер не поддерживает verbose_json ответы, эта настройка не будет иметь никакого эффекта.
-            verbose-json-unsupported: >-
-              Ваш провайдер не вернул сегменты verbose_json. Фильтрация по уверенности не повлияла на последнюю транскрипцию.
+            verbose-json-note: 'Примечание: Если ваш провайдер не поддерживает verbose_json ответы, эта настройка не будет иметь никакого эффекта.'
+            verbose-json-unsupported: Ваш провайдер не вернул сегменты verbose_json. Фильтрация по уверенности не повлияла на последнюю транскрипцию.
+          hotkey:
+            title: Mic Toggle Hotkey
+            description: Toggle the microphone using a keyboard lock key (Scroll, Caps, or Num Lock). Your keyboard's LED will stay in sync with AIRI's mic status.
+            options:
+              scroll: Scroll Lock
+              caps: Caps Lock
+              num: Num Lock
     memory-long-term:
       description: Настройки долговременной памяти
       title: Долговременная память
@@ -668,6 +756,37 @@ pages:
       token-description: Ваш токен бота Discord
       token-placeholder: Введите токен бота Discord
       configured: Discord настроен правильно!
+      connectivity:
+        title: Connectivity
+        status: Status
+        ping: Ping
+        connected: Connected
+        disconnected: Disconnected
+        connecting: Connecting...
+        error: Error
+        no-guilds: Not connected to any servers.
+      actions:
+        start: Start Service
+        stop: Stop Service
+        restart: Restart Service
+        force-sync: Force Card Sync
+        simulate: Simulate Message
+        test-auth: Test Auth
+        clear-log: Clear Log
+      presence:
+        title: Active Presence
+        guild: Server
+        channel: Channel
+        no-active: No active presence.
+      dev-console:
+        title: Developer Console
+        empty: No events recorded yet. Start the service to begin capturing.
+      simulate-dialog:
+        username: Username
+        username-placeholder: Enter a username...
+        content: Message
+        content-placeholder: Enter a test message...
+        send: Send
     speech:
       description: Синтез речи
       sections:
@@ -695,11 +814,11 @@ pages:
             search_voices_placeholder: Поиск голосов...
             search_voices_results: Найдено {count} из {total} голосов
             unsupported_voice_warning_title: Нет поддерживаемых голосов
-            unsupported_voice_warning_content: >-
-              Попробуйте другую модель или провайдер. Мы работаем над поддержкой всего голоса для этой модели как можно скорее. Если вам это необходимо, пожалуйста, сообщите нам на GitHub по адресу https://github.com/moeru-ai/airi/issues.
+            unsupported_voice_warning_content: Попробуйте другую модель или провайдер. Мы работаем над поддержкой всего голоса для этой модели как можно скорее. Если вам это необходимо, пожалуйста, сообщите нам на GitHub по адресу https://github.com/moeru-ai/airi/issues.
             show_less: Показать меньше
             show_more: Показать больше
             title: Провайдер
+            search_results: Found {count} of {total} models
           voice-settings:
             input-ssml:
               placeholder: Введите SSML-текст...
@@ -743,7 +862,7 @@ pages:
         empty: Здесь пока ничего нет. Добавьте одно ниже!
       add:
         title: Новый
-        description: 'Заполните новый сервер, затем нажмите кнопку «Сохранить и перезапустить» — он будет перемещен в «Конфигурация» выше.'
+        description: Заполните новый сервер, затем нажмите кнопку «Сохранить и перезапустить» — он будет перемещен в «Конфигурация» выше.
         pending-badge: Не сохранено
       status:
         unknown: Не загружен
@@ -763,6 +882,10 @@ pages:
         cancel: Отменить
         expand: Развернуть
         collapse: Свернуть
+        apply-restart: Save and restart stdio MCP
+        refresh: Refresh Status
+        install: Install
+        installed: Installed
       fields:
         identifier:
           label: Идентификатор
@@ -775,7 +898,11 @@ pages:
         args:
           label: Аргументы
           description: По одному на строку, по порядку.
-          placeholder: "-y\nsome-package-name\n/tmp"
+          placeholder: '-y
+
+            some-package-name
+
+            /tmp'
         cwd:
           label: Рабочая папка
           description: Необязательный каталог, используемый в качестве рабочего каталога процесса.
@@ -789,7 +916,7 @@ pages:
           label: Включено
       json:
         title: Редактировать mcp.json
-        description: 'Отредактируйте сырые JSON напрямую. Нажмите «Применить», чтобы загрузить их в форму, затем «Сохранить и перезапустить», чтобы записать их на диск.'
+        description: Отредактируйте сырые JSON напрямую. Нажмите «Применить», чтобы загрузить их в форму, затем «Сохранить и перезапустить», чтобы записать их на диск.
         placeholder: Вставьте mcp.json здесь…
       test:
         title: Проверить подключение
@@ -804,7 +931,7 @@ pages:
         success: Подключено! Найдено {count} инструментов за {ms}мс.
         failure: Сбой соединения после {ms}мс
       errors:
-        empty-identifier: Server # {index} is missing an identifier.
+        empty-identifier: Server
         duplicate-identifier: Идентификатор "{name}" используется более одного раза — имена должны быть уникальными.
         empty-command: '"{name}" отсутствует команда.'
         invalid-shape: Это не похоже на mcp.json — для root требуется поле "mcpServers".
@@ -812,6 +939,17 @@ pages:
         opened: В файловом менеджере открыта {path}
         json-applied: JSON применен к форме. Нажмите «Сохранить и перезапустить», чтобы сохранить его на диск.
         restarted: Все перезапущено! {started} запущен, {failed} не удалось, {skipped} пропущен.
+        install-success: '{name} installed successfully'
+      tabs:
+        manage: Manage
+        discover: Discover
+      search-placeholder: Search MCP servers (e.g. Google Search, Filesystem)...
+      dashboard:
+        tool-count: '{count} tools available'
+      registry:
+        loading: Loading registry...
+        stars: '{count} stars'
+        no-results: No servers found for "{query}"
   flux:
     title: Flux
     buy: Пополнить
@@ -852,8 +990,7 @@ pages:
         validation:
           failed:
             title: Пожалуйста, проверьте настройки провайдера, проверка не удалась.
-            description: >-
-              Вы можете сохранить текущую конфигурацию, если хотите продолжить.
+            description: Вы можете сохранить текущую конфигурацию, если хотите продолжить.
             action: Сохранить в любом случае
         config:
           common:
@@ -865,8 +1002,7 @@ pages:
                   placeholder: Sk-....
                 base-url:
                   label: Базовый URL
-                  description: >-
-                    Базовый url, используемый для подключения к удаленному сервису. Часто выглядит как http://localhost:11434/v1 или https://example.com/v1.
+                  description: Базовый url, используемый для подключения к удаленному сервису. Часто выглядит как http://localhost:11434/v1 или https://example.com/v1.
                   placeholder: Base url...
                 headers:
                   label: Добавить кастомные HTTP-заголовки
@@ -877,8 +1013,10 @@ pages:
                     placeholder: Ценность
                 thinking-mode:
                   label: Режим мышления
-                  description: >
-                    Контролирует поведение мышления Ollama. GPT-OSS поддерживает только низкие/средние/высокие уровни.
+                  description:
+                    'Контролирует поведение мышления Ollama. GPT-OSS поддерживает только низкие/средние/высокие уровни.
+
+                    '
                   options:
                     auto: Авто (по умолчанию провайдера)
                     disable: Отключить
@@ -911,8 +1049,7 @@ pages:
                 validators:
                   openai-compatible-check-connectivity:
                     label: Дополнительные настройки необходимы Ollama
-                    content: >-
-                      К сожалению, произошла проверка соединения для Ollama. Не волнуйтесь, для копий Ollama требуется дополнительная конфигурация для передачи Ollama. Необходимо установить <code>OLLAMA_HOST</code> явно при запуске приложения Ollama или Ollama CLI сервера, для получения подробной информации смотрите руководство по интеграции <a href="https://airi.moeru.ai/docs/en/docs/manual/integrations/providers/chat/ollama">Ollama</a>.
+                    content: К сожалению, произошла проверка соединения для Ollama. Не волнуйтесь, для копий Ollama требуется дополнительная конфигурация для передачи Ollama. Необходимо установить <code>OLLAMA_HOST</code> явно при запуске приложения Ollama или Ollama CLI сервера, для получения подробной информации смотрите руководство по интеграции <a href="https://airi.moeru.ai/docs/en/docs/manual/integrations/providers/chat/ollama">Ollama</a>.
     common:
       continueAnyway: Продолжить всё равно
       goToModelSelection: Выберите модель →
@@ -957,8 +1094,7 @@ pages:
         description: Провайдеры речи (text-to-speech), напр. ElevenLabs, Azure Speech.
       transcription:
         title: Транскрипция
-        description: >-
-          Провайдеры транскрипции (speech-to-text): Whisper.cpp, OpenAI, Azure Speech
+        description: 'Провайдеры транскрипции (speech-to-text): Whisper.cpp, OpenAI, Azure Speech'
       artistry:
         title: Artistry
         description: Поставщики моделей генерации и создания изображений, например ComfyUI, Replicate.
@@ -971,13 +1107,14 @@ pages:
             description: Google AI Studio Image Preview.
     helpinfo:
       title: Впервые здесь?
-      description: >
-        AIRI требует как минимум одного {chat}-провайдера для корректной работы. Можно считать его "мозгом" персонажей в системе AIRI.
+      description:
+        'AIRI требует как минимум одного {chat}-провайдера для корректной работы. Можно считать его "мозгом" персонажей в системе AIRI.
+
+        '
     explained:
       chat: Провайдеры текстогенерации, напр. OpenRouter, OpenAI, Ollama.
       Speech: Провайдеры речи (TTS), напр. ElevenLabs, Azure Speech.
-      Transcription: >-
-        Провайдеры транскрипции (STT): Whisper.cpp, OpenAI, Azure Speech.
+      Transcription: 'Провайдеры транскрипции (STT): Whisper.cpp, OpenAI, Azure Speech.'
     description: LLM-модели, провайдеры речи и др.
     provider:
       app-local-audio-transcription:
@@ -1012,14 +1149,11 @@ pages:
         helpinfo:
           title: Перед началом
           description:
-            part1: >-
-              Хотя Anthropic недавно объявили о бета-поддержке совместимости с OpenAI SDK
+            part1: Хотя Anthropic недавно объявили о бета-поддержке совместимости с OpenAI SDK
             part2: (подробнее здесь)
             part3: но из-за особенностей реализации есть
-            part4: >-
-              ограничения, не совпадающие со спецификой OpenAI SDK, поэтому сейчас использовать этого провайдера в браузере нельзя.
-            part5: >-
-              Если провайдер необходим, нужен выделенный прокси-бэкенд (например, Serverless Function)
+            part4: ограничения, не совпадающие со спецификой OpenAI SDK, поэтому сейчас использовать этого провайдера в браузере нельзя.
+            part5: Если провайдер необходим, нужен выделенный прокси-бэкенд (например, Serverless Function)
             part6: или сервисы обхода CORS для снятия ограничений CORS.
       cloudflare-workers-ai:
         description: Cloudflare.com
@@ -1196,8 +1330,7 @@ pages:
               description: Маленькие модели загружаются быстрее, но могут иметь немного более низкое качество.
         models:
           fp32-webgpu:
-            description: >-
-              Полная точная модель с использованием WebGPU - рекомендуется для поддерживаемых устройств
+            description: Полная точная модель с использованием WebGPU - рекомендуется для поддерживаемых устройств
           fp32:
             description: Полная точная модель
           fp16:
@@ -1366,29 +1499,24 @@ pages:
       placeholder: Ws://localhost:6121/ws
     server-hostname:
       label: Открыть доступ по сети
-      description: >-
-        Выберите, будет ли шлюз AIRI прослушивать только это устройство или к нему можно будет подключиться из вашей локальной сети.
+      description: Выберите, будет ли шлюз AIRI прослушивать только это устройство или к нему можно будет подключиться из вашей локальной сети.
       advanced-label: Привязать имя хоста
-      advanced-description: >-
-        Использовать определенное имя хоста или IP-адрес, когда требуется ручная привязка сети.
+      advanced-description: Использовать определенное имя хоста или IP-адрес, когда требуется ручная привязка сети.
       options:
         this-device: Это устройство
         all: Все
         advanced: Дополнительно
     server-auth-token:
       label: Токен аутентификации
-      description: >-
-        Токен безопасности, требуемый удалёнными клиентами для подключения к этому шлюзу. Если оставить пустым, AIRI сгенерирует новый токен автоматически.
+      description: Токен безопасности, требуемый удалёнными клиентами для подключения к этому шлюзу. Если оставить пустым, AIRI сгенерирует новый токен автоматически.
       placeholder: Авто-Генерация
     qr:
       title: Подключиться из Stage Pocket
-      description: >-
-        Сканируйте этот QR-код из Stage Pocket, чтобы попробовать все доступные адреса локальной сети и сохранить первый рабочий.
+      description: Сканируйте этот QR-код из Stage Pocket, чтобы попробовать все доступные адреса локальной сети и сохранить первый рабочий.
       refresh: Обновить
       image-alt: QR-код соединения с сервером AIRI
       candidates: Адреса кандидаты
-      token-hint: >-
-        QR-код включает в себя токен авторизации, чтобы Stage Pocket мог пройти аутентификацию после подключения. Не делитесь этим публично.
+      token-hint: QR-код включает в себя токен авторизации, чтобы Stage Pocket мог пройти аутентификацию после подключения. Не делитесь этим публично.
       errors:
         title: QR-код недоступен
         unavailable: Не удалось подготовить QR-код подключения.
@@ -1459,8 +1587,7 @@ pages:
                 title: Polaroid
                 description: Утилита для съемки моделей
               context-flow:
-                description: >-
-                  Проверять обновления контекста входящих и исходящих событий в чате
+                description: Проверять обновления контекста входящих и исходящих событий в чате
               websocket-inspector:
                 title: Инспектор WebSocket
                 description: Проверять трафик необработанных WebSocket
@@ -1469,8 +1596,7 @@ pages:
                 description: Извлечение цвета теста
               providers-transcription-realtime-aliyun-nls:
                 title: Транскрибирую в реальном времени
-                description: >-
-                  Трансляция микрофона на Aliyun NLS и проверка текущих субтитров
+                description: Трансляция микрофона на Aliyun NLS и проверка текущих субтитров
               performance-playground:
                 title: Игровая площадка производительности
                 description: Выражения VRM + Проводка TTS lip синхронизации
@@ -1539,8 +1665,7 @@ pages:
                 color-6: Золотисто-Желтый
                 color-7: Лазурно-голубой
                 color-8: Ochre
-              description: >-
-                Традиционные китайские цвета, вдохновлённые текстилем, фарфором и живописью
+              description: Традиционные китайские цвета, вдохновлённые текстилем, фарфором и живописью
               title: Китайские традиционные цвета
           title: Наборы цветовых схем
     title: Внешний вид
@@ -1579,8 +1704,9 @@ sections:
       title: Общие
 theme:
   title: Тема
-  description: |
-    Переключение основной темы AIRI: светлая или тёмная.
+  description: 'Переключение основной темы AIRI: светлая или тёмная.
+
+    '
 title: Настройки
 voices: Голос
 vrm:
@@ -1597,12 +1723,14 @@ vrm:
     model-info-x: Ширина (X)
     model-info-y: Высота (Y)
     model-info-z: Глубина (Z)
-    tips: |
-      Настройте начальную позицию модели VRM.
+    tips: 'Настройте начальную позицию модели VRM.
+
       Оси координат визуализированы.
+
+      '
     scale: Масштаб
     x: Смещение по X
-    'y': Смещение по Y
+    y: Смещение по Y
     z: Смещение по Z
     fov: Угол обзора (градусы)
     rotation-y: Вращение (ось Y)
@@ -1629,7 +1757,7 @@ spine:
     title: Масштаб и позиция
     scale: Масштаб
     x: X
-    'y': 'Y'
+    y: Y
   theme-color-from-model:
     title: Извлечь цвета из модели
     button-extract:
@@ -1654,9 +1782,7 @@ spine:
       unlimited: Без ограничений
 websocket-secure-enabled:
   title: Включить безопасный WebSocket (WSS)
-  description: >-
-    Включите WSS (WebSocket Secure), чтобы разрешить HTTPS-подключения для мобильных устройств (pocket) в режиме разработки. Это автоматически сгенерирует самоподписанный сертификат.
+  description: Включите WSS (WebSocket Secure), чтобы разрешить HTTPS-подключения для мобильных устройств (pocket) в режиме разработки. Это автоматически сгенерирует самоподписанный сертификат.
 wip:
   title: В разработке
-  description: >-
-    Эта функция в настоящее время находится в разработке и еще не доступна публично. Проверьте её в будущих обновлениях.
+  description: Эта функция в настоящее время находится в разработке и еще не доступна публично. Проверьте её в будущих обновлениях.

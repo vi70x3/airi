@@ -1,45 +1,52 @@
 <script setup lang="ts">
 import type { Card } from '@proj-airi/ccc'
 import type { AiriExtension } from '@proj-airi/stage-ui/stores/modules/airi-card'
+import type { SpeechCapabilitiesInfo } from '@proj-airi/stage-ui/stores/providers'
 
 import kebabcase from '@stdlib/string-base-kebabcase'
 
+import { useLive2d } from '@proj-airi/stage-ui-live2d'
+import { useMmd } from '@proj-airi/stage-ui-mmd'
+import { useSpine } from '@proj-airi/stage-ui-spine'
+import { useCustomVrmAnimationsStore, useModelStore } from '@proj-airi/stage-ui-three'
+import { animations } from '@proj-airi/stage-ui-three/assets/vrm'
 import { DEFAULT_ARTISTRY_WIDGET_INSTRUCTION } from '@proj-airi/stage-ui/constants/prompts/artistry-instruction'
-import { useDisplayModelsStore } from '@proj-airi/stage-ui/stores/display-models'
+import {
+  DEFAULT_ACTING_MODEL_EXPRESSION_PROMPT,
+  DEFAULT_ACTING_SPEECH_EXPRESSION_PROMPT,
+  DEFAULT_ACTING_SPEECH_MANNERISM_PROMPT,
+  DEFAULT_HEARTBEATS_PROMPT,
+  DEFAULT_POST_HISTORY_INSTRUCTIONS,
+} from '@proj-airi/stage-ui/constants/prompts/character-defaults'
+import { useBackgroundStore } from '@proj-airi/stage-ui/stores/background'
+import { DisplayModelFormat, useDisplayModelsStore } from '@proj-airi/stage-ui/stores/display-models'
 import { useAiriCardStore } from '@proj-airi/stage-ui/stores/modules/airi-card'
 import { useArtistryStore } from '@proj-airi/stage-ui/stores/modules/artistry'
 import { useConsciousnessStore } from '@proj-airi/stage-ui/stores/modules/consciousness'
 import { useSpeechStore } from '@proj-airi/stage-ui/stores/modules/speech'
+import { useProactivityStore } from '@proj-airi/stage-ui/stores/proactivity'
 import { useProvidersStore } from '@proj-airi/stage-ui/stores/providers'
 import { useSettingsStageModel } from '@proj-airi/stage-ui/stores/settings/stage-model'
-import { Button, FieldInput, FieldValues } from '@proj-airi/ui'
-import { ComboboxSelect } from '@proj-airi/ui/components/form'
+import { Button } from '@proj-airi/ui'
+import { errorMessageFrom } from '@moeru/std'
+import { toast } from 'vue-sonner'
 import { storeToRefs } from 'pinia'
 import { DialogContent, DialogOverlay, DialogPortal, DialogRoot, DialogTitle } from 'reka-ui'
-import { computed, ref, toRaw, watch } from 'vue'
+import { computed, onMounted, ref, toRaw, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+import FieldAiGeneratorModal from './FieldAiGeneratorModal.vue'
+import CardCreationTabActing from './tabs/CardCreationTabActing.vue'
 import CardCreationTabArtistry from './tabs/CardCreationTabArtistry.vue'
+import CardCreationTabBehavior from './tabs/CardCreationTabBehavior.vue'
+import CardCreationTabGeneration from './tabs/CardCreationTabGeneration.vue'
+import CardCreationTabIdentity from './tabs/CardCreationTabIdentity.vue'
+import CardCreationTabModules from './tabs/CardCreationTabModules.vue'
+import CardCreationTabProactivity from './tabs/CardCreationTabProactivity.vue'
 
 interface Props {
   modelValue: boolean
   cardId?: string // If provided, edit mode; otherwise create mode
-  initialTab?: string
-}
-
-interface LegacyArtistrySettings {
-  provider?: string
-  model?: string
-  promptPrefix?: string
-  widgetInstruction?: string
-  options?: Record<string, unknown>
-}
-
-type AiriExtensionWithLegacyArtistry = AiriExtension & {
-  artistry?: LegacyArtistrySettings
-  modules?: AiriExtension['modules'] & {
-    artistry?: LegacyArtistrySettings
-  }
 }
 
 const props = defineProps<Props>()
@@ -53,11 +60,19 @@ const { t } = useI18n()
 const cardStore = useAiriCardStore()
 const consciousnessStore = useConsciousnessStore()
 const speechStore = useSpeechStore()
+const artistryStore = useArtistryStore()
+const proactivityStore = useProactivityStore()
 const providersStore = useProvidersStore()
 const displayModelsStore = useDisplayModelsStore()
 const stageModelStore = useSettingsStageModel()
-const artistryStore = useArtistryStore()
+const modelStore = useModelStore()
+const customVrmAnimationsStore = useCustomVrmAnimationsStore()
+const backgroundStore = useBackgroundStore()
+const live2dStore = useLive2d()
+const mmdStore = useMmd()
+const spineStore = useSpine()
 
+const { sensorPayload } = storeToRefs(proactivityStore)
 const { activeProvider: consciousnessProvider, activeModel: defaultConsciousnessModel } =
   storeToRefs(consciousnessStore)
 const {
@@ -65,12 +80,41 @@ const {
   activeSpeechModel: defaultSpeechModel,
   activeSpeechVoiceId: defaultSpeechVoiceId,
 } = storeToRefs(speechStore)
-const { displayModels } = storeToRefs(displayModelsStore)
 const { stageModelSelected: defaultDisplayModelId } = storeToRefs(stageModelStore)
 const { activeProvider: defaultArtistryProvider } = storeToRefs(artistryStore)
+const { availableExpressions } = storeToRefs(modelStore)
+const { animationOptions } = storeToRefs(customVrmAnimationsStore)
+const { availableExpressions: live2dExpressions } = storeToRefs(live2dStore)
+const { availableMorphs: mmdMorphs, availableMotions: mmdMotions } = storeToRefs(mmdStore)
+const { availableAnimations: spineAnimations } = storeToRefs(spineStore)
 
 // Determine if we're in edit mode
 const isEditMode = computed(() => !!props.cardId)
+
+const isLive2d = computed(() => {
+  const modelId = selectedDisplayModelId.value || defaultDisplayModelId.value
+  const model = displayModelsStore.displayModels.find((m) => m.id === modelId)
+  if (!model) return false
+  return model.format === DisplayModelFormat.Live2dZip || model.format === DisplayModelFormat.Live2dDirectory
+})
+
+const isSpine = computed(() => {
+  const modelId = selectedDisplayModelId.value || defaultDisplayModelId.value
+  const model = displayModelsStore.displayModels.find((m) => m.id === modelId)
+  if (!model) return false
+  return model.format === DisplayModelFormat.SpineZip
+})
+
+const isMmd = computed(() => {
+  const modelId = selectedDisplayModelId.value || defaultDisplayModelId.value
+  const model = displayModelsStore.displayModels.find((m) => m.id === modelId)
+  if (!model) return false
+  return (
+    model.format === DisplayModelFormat.PMXZip ||
+    model.format === DisplayModelFormat.PMXDirectory ||
+    model.format === DisplayModelFormat.PMD
+  )
+})
 
 // Modules configuration
 const selectedConsciousnessProvider = ref<string>('')
@@ -79,26 +123,92 @@ const selectedSpeechProvider = ref<string>('')
 const selectedSpeechModel = ref<string>('')
 const selectedSpeechVoiceId = ref<string>('')
 const selectedDisplayModelId = ref<string>('')
-
-// Artistry configuration
+const selectedActiveBackgroundId = ref<string>('none')
 const selectedArtistryProvider = ref<string>('')
 const selectedArtistryModel = ref<string>('')
 const selectedArtistryPromptPrefix = ref<string>('')
 const selectedArtistryWidgetInstruction = ref<string>('')
-const selectedArtistrySpawnMode = ref<'bg' | 'widget' | 'inline' | 'bg_widget'>('bg_widget')
 const selectedArtistryAutonomousEnabled = ref<boolean>(false)
 const selectedArtistryAutonomousThreshold = ref<number>(70)
+const selectedArtistryAutonomousTarget = ref<'user' | 'assistant'>('user')
+const selectedArtistryAutonomousMonitorEnabled = ref<boolean>(true)
+const selectedArtistryAutonomousHistoryDepth = ref<number>(3)
+const selectedArtistrySpawnMode = ref<'bg' | 'widget' | 'inline' | 'bg_widget'>('bg_widget')
 const selectedArtistryConfigStr = ref<string>('{\n  \n}')
+const generationEnabled = ref<boolean>(false)
+const generationProvider = ref<string>('')
+const generationModel = ref<string>('')
+const generationMaxTokens = ref<number | undefined>(undefined)
+const generationTemperature = ref<number | undefined>(undefined)
+const generationTopP = ref<number | undefined>(undefined)
+const generationContextWidth = ref<number | undefined>(undefined)
+const generationAdvancedJson = ref<string>('{\n  \n}')
+const generationReasoningFallback = ref<boolean>(true)
+const compactionStrategy = ref<string>('none')
+const compactionMinKeepTurns = ref<number | undefined>(15)
+const selectedActingModelExpressionPrompt = ref<string>('')
+const selectedActingSpeechExpressionPrompt = ref<string>('')
+const selectedActingSpeechMannerismPrompt = ref<string>('')
+const selectedActingIdleAnimations = ref<string[]>([])
+const actingSpeechCapabilities = ref<SpeechCapabilitiesInfo | null>(null)
+const actingSpeechCapabilitiesLoading = ref<boolean>(false)
 
-// Computed: available display model options
-const displayModelOptions = computed(() =>
-  displayModels.value.map((model) => ({
-    value: model.id,
-    label: model.name,
-  })),
-)
+const DEFAULT_ACTING_MODEL_PROMPT = DEFAULT_ACTING_MODEL_EXPRESSION_PROMPT
 
-// Computed: available consciousness provider options
+const MANNERISM_HELPER_SNIPPETS: Record<string, string> = {
+  tilde: `## Tilde Replacements
+Use occasional \`~\` when sounding playful, sing-song, teasing, or gently affectionate.
+- Keep it light and sparse.
+- Avoid using it on every sentence.
+- Prefer it when the line should feel airy or mischievous.
+`,
+  eyes: `## Emoticon Replacements
+Use short emoticon-style reactions when a strong expression would land better as a quick face than as plain words.
+- Keep them readable and emotionally obvious.
+- Use them for spikes of embarrassment, excitement, confusion, or stress.
+- Do not overuse them in serious or dense exposition.
+`,
+  hmph: `## Hmph Variants
+Use brief pouty or dismissive mannerisms when sounding stubborn, embarrassed, bratty, or mildly annoyed.
+- Keep them occasional.
+- Let them color the line instead of replacing the content.
+- Use them when attitude matters more than pure politeness.
+`,
+}
+
+// Heartbeats configuration
+const heartbeatsEnabled = ref<boolean>(false)
+const heartbeatsIntervalMinutes = ref<number>(5)
+const heartbeatsPrompt = ref<string>('')
+const heartbeatsInjectIntoPrompt = ref<boolean>(true)
+const heartbeatsUseAsLocalGate = ref<boolean>(true)
+const heartbeatsScheduleStart = ref<string>('09:00')
+const heartbeatsScheduleEnd = ref<string>('22:00')
+const heartbeatsContextWindowHistory = ref<boolean>(true)
+const heartbeatsContextSystemLoad = ref<boolean>(true)
+const heartbeatsContextUsageMetrics = ref<boolean>(true)
+const heartbeatsRespectSchedule = ref<boolean>(true)
+const dreamStateEnabled = ref<boolean>(false)
+const dreamStateStrictAfkGating = ref<boolean>(true)
+const groundingEnabled = ref<boolean>(false)
+
+const staticSamplePayload = `[Sensor Data]
+User Idle: 15s
+[ VS Code ] [ 15m ] [ 10:45 - 11:00 ]
+[ Spotify ] [ 3m ] [ 11:00 - 11:03 ]
+CPU Load (1/5/15): 0.5 | 0.72 | 0.61
+GPU Load (Avg): 0.45
+Volume Level: 85%
+Current Local Time: 14:30
+Active Character Default Background: cozy-tea-corner-in-pastel-hues.png
+
+[Usage Metrics (Last Hr)]
+TTS (Last Hr): 5
+STT (Last Hr): 0
+Chat (Last Hr): 2
+Journal Entries (Last Hr): 1
+Turn Count: 498 (Next Target: 500)`
+
 const consciousnessProviderOptions = computed(() => {
   return providersStore.configuredChatProvidersMetadata.map((provider) => ({
     value: provider.id,
@@ -106,9 +216,29 @@ const consciousnessProviderOptions = computed(() => {
   }))
 })
 
+const artistryProviderOptions = computed(() => {
+  return [
+    { value: 'none', label: 'None (Disabled)' },
+    { value: 'replicate', label: 'Replicate' },
+    { value: 'comfyui', label: 'ComfyUI' },
+  ]
+})
+
 // Computed: available consciousness models options
 const consciousnessModelOptions = computed(() => {
   const provider = selectedConsciousnessProvider.value || consciousnessProvider.value
+  if (!provider) return []
+  const models = providersStore.getModelsForProvider(provider)
+  return models.map((model) => ({
+    value: model.id,
+    label: model.name || model.id,
+  }))
+})
+
+const generationProviderOptions = computed(() => consciousnessProviderOptions.value)
+
+const generationModelOptions = computed(() => {
+  const provider = generationProvider.value || selectedConsciousnessProvider.value || consciousnessProvider.value
   if (!provider) return []
   const models = providersStore.getModelsForProvider(provider)
   return models.map((model) => ({
@@ -147,14 +277,226 @@ const speechVoiceOptions = computed(() => {
   }))
 })
 
-// Computed: available artistry provider options
-const artistryProviderOptions = computed(() => {
+const displayModelOptions = computed(() => {
+  return displayModelsStore.displayModels.map((model) => {
+    const isLive2D =
+      model.format === DisplayModelFormat.Live2dZip || model.format === DisplayModelFormat.Live2dDirectory
+    const isSpine = model.format === DisplayModelFormat.SpineZip
+    const isMmd =
+      model.format === DisplayModelFormat.PMXZip ||
+      model.format === DisplayModelFormat.PMXDirectory ||
+      model.format === DisplayModelFormat.PMD
+    let prefix = '[VRM]'
+    if (isLive2D) prefix = '[Live2D]'
+    else if (isSpine) prefix = '[Spine]'
+    else if (isMmd) prefix = '[MMD]'
+    return {
+      value: model.id,
+      label: `${prefix} ${model.name}`,
+    }
+  })
+})
+
+const sceneOptions = computed(() => {
+  const backgrounds = backgroundStore.getCharacterBackgrounds(props.cardId)
   return [
-    { value: 'none', label: 'None (Disabled)' },
-    { value: 'replicate', label: 'Replicate' },
-    { value: 'comfyui', label: 'ComfyUI' },
-    { value: 'nanobanana', label: 'Nano Banana' },
+    { value: 'none', label: t('settings.pages.card.creation.none') },
+    ...backgrounds.map((bg) => ({
+      value: bg.id,
+      label: bg.type === 'journal' ? `Journal: ${bg.title}` : bg.title,
+    })),
   ]
+})
+
+const actingModelExpressionOptions = computed(() => {
+  if (isLive2d.value) {
+    const exps = live2dExpressions.value.map((e) => e.name)
+    const motionMappings = cardStore.activeCard?.extensions?.airi?.modules?.live2d?.motionMappings || {}
+    const hiddenMotions = cardStore.activeCard?.extensions?.airi?.modules?.live2d?.hiddenMotions || []
+
+    const mappedMotions: string[] = []
+    const unmappedMotions: string[] = []
+
+    live2dStore.availableMotions.forEach((m) => {
+      if (hiddenMotions.includes(m.fileName)) return
+
+      const name = m.fileName.split('/').pop() || m.fileName
+      const cleanName = name.replace('.motion3.json', '').replace('.json', '')
+      const mappedName = motionMappings[m.fileName]
+
+      if (mappedName) {
+        mappedMotions.push(mappedName)
+      } else {
+        unmappedMotions.push(cleanName)
+      }
+    })
+
+    mappedMotions.sort((a, b) => a.localeCompare(b))
+    unmappedMotions.sort((a, b) => a.localeCompare(b))
+
+    if (mappedMotions.length > 0) {
+      return [...new Set([...exps, ...mappedMotions])]
+    } else {
+      return [...new Set([...exps, ...unmappedMotions])]
+    }
+  }
+  if (isSpine.value) {
+    return spineAnimations.value.map((a) => a.name).sort((a, b) => a.localeCompare(b))
+  }
+  if (isMmd.value) {
+    const mappings = mmdStore.morphMappings || {}
+    const hidden = mmdStore.hiddenMorphs || []
+
+    const mapped: string[] = []
+    const unmapped: string[] = []
+
+    mmdMorphs.value.forEach((m: string) => {
+      if (hidden.includes(m)) return
+
+      const mappedName = mappings[m]
+      if (mappedName) {
+        mapped.push(mappedName)
+      } else {
+        unmapped.push(m)
+      }
+    })
+
+    if (mapped.length > 0) {
+      return [...new Set(mapped)].sort((a, b) => a.localeCompare(b))
+    } else {
+      return [...new Set(unmapped)].sort((a, b) => a.localeCompare(b))
+    }
+  }
+  const modelExps = [...availableExpressions.value]
+  const vrmaExps = Object.keys(animations)
+  return [...new Set([...modelExps, ...vrmaExps])].sort((a, b) => a.localeCompare(b))
+})
+
+const actingIdleAnimationOptions = computed(() => {
+  if (isLive2d.value) {
+    const motionMappings = cardStore.activeCard?.extensions?.airi?.modules?.live2d?.motionMappings || {}
+    const hiddenMotions = cardStore.activeCard?.extensions?.airi?.modules?.live2d?.hiddenMotions || []
+
+    const mappedMotions: { label: string; value: string }[] = []
+    const unmappedMotions: { label: string; value: string }[] = []
+
+    live2dStore.availableMotions.forEach((m) => {
+      if (hiddenMotions.includes(m.fileName)) return
+
+      const name = m.fileName.split('/').pop() || m.fileName
+      const cleanName = name.replace('.motion3.json', '').replace('.json', '')
+      const mappedName = motionMappings[m.fileName]
+
+      if (mappedName) {
+        mappedMotions.push({ label: mappedName, value: mappedName })
+      } else {
+        unmappedMotions.push({ label: cleanName, value: cleanName })
+      }
+    })
+
+    mappedMotions.sort((a, b) => a.label.localeCompare(b.label))
+    unmappedMotions.sort((a, b) => a.label.localeCompare(b.label))
+
+    if (mappedMotions.length > 0) {
+      return mappedMotions
+    } else {
+      return unmappedMotions
+    }
+  }
+  if (isSpine.value) {
+    return spineAnimations.value.map((a) => ({ label: a.name, value: a.name }))
+  }
+  if (isMmd.value) {
+    return mmdMotions.value.map((m: string) => ({ label: m, value: m }))
+  }
+  return animationOptions.value
+})
+
+function isVrmaExpression(name: string) {
+  return name in animations
+}
+
+const actingExpressionTags = computed(() => actingSpeechCapabilities.value?.expressionTags || [])
+
+const actingGroupedExpressionTags = computed(() => {
+  const groups = new Map<string, { tag: string; description?: string }[]>()
+  for (const tag of actingExpressionTags.value) {
+    const key = tag.category || 'other'
+    if (!groups.has(key)) groups.set(key, [])
+    groups.get(key)!.push({ tag: tag.tag, description: tag.description })
+  }
+
+  return [...groups.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([category, tags]) => ({
+      category,
+      tags: tags.sort((a, b) => a.tag.localeCompare(b.tag)),
+    }))
+})
+
+const actingMannerismOptions = computed(() => actingSpeechCapabilities.value?.mannerisms || [])
+
+async function loadActingSpeechCapabilities(providerId: string) {
+  actingSpeechCapabilitiesLoading.value = true
+  try {
+    const metadata = providersStore.getProviderMetadata(providerId)
+    const capabilities = await metadata.capabilities.getSpeechCapabilities?.(
+      providersStore.getProviderConfig(providerId),
+    )
+    actingSpeechCapabilities.value = capabilities ?? null
+  } catch {
+    actingSpeechCapabilities.value = null
+  } finally {
+    actingSpeechCapabilitiesLoading.value = false
+  }
+}
+
+function appendUniqueLine(target: typeof selectedActingModelExpressionPrompt, line: string) {
+  if (target.value.includes(line)) return
+
+  const suffix = target.value.endsWith('\n') || !target.value ? '' : '\n'
+  target.value = `${target.value}${suffix}${line}\n`
+}
+
+function insertModelExpression(name: string) {
+  if (isLive2d.value) {
+    const isExpression = live2dExpressions.value.some((e) => e.name === name)
+    const motionMappings = cardStore.activeCard?.extensions?.airi?.modules?.live2d?.motionMappings || {}
+    const isMotion = live2dStore.availableMotions.some((m) => {
+      const displayName = m.fileName.split('/').pop() || m.fileName
+      const cleanName = displayName.replace('.motion3.json', '').replace('.json', '')
+      const mappedName = motionMappings[m.fileName]
+      return displayName === name || cleanName === name || mappedName === name
+    })
+
+    if (isExpression) {
+      appendUniqueLine(selectedActingModelExpressionPrompt, `- <|ACT:emotion:"${name}"|>`)
+    } else if (isMotion) {
+      appendUniqueLine(selectedActingModelExpressionPrompt, `- <|ACT:motion:"${name}"|>`)
+    } else {
+      appendUniqueLine(selectedActingModelExpressionPrompt, `- \`${name}\``)
+    }
+  } else {
+    appendUniqueLine(selectedActingModelExpressionPrompt, `- \`${name}\``)
+  }
+}
+
+function insertSpeechTag(tag: string, description?: string) {
+  const line = description ? `- \`[${tag}]\` - ${description}` : `- \`[${tag}]\``
+  appendUniqueLine(selectedActingSpeechExpressionPrompt, line)
+}
+
+function insertSpeechMannerism(id: string) {
+  const snippet = MANNERISM_HELPER_SNIPPETS[id]
+  if (!snippet || selectedActingSpeechMannerismPrompt.value.includes(snippet.trim())) return
+
+  const suffix =
+    selectedActingSpeechMannerismPrompt.value.endsWith('\n') || !selectedActingSpeechMannerismPrompt.value ? '' : '\n\n'
+  selectedActingSpeechMannerismPrompt.value = `${selectedActingSpeechMannerismPrompt.value}${suffix}${snippet}`
+}
+
+onMounted(() => {
+  displayModelsStore.loadDisplayModelsFromIndexedDB()
 })
 
 // Load models for current providers on init
@@ -184,6 +526,13 @@ watch(selectedConsciousnessProvider, async (newProvider, oldProvider) => {
   }
 })
 
+watch(generationProvider, async (newProvider, oldProvider) => {
+  if (oldProvider !== undefined && newProvider !== oldProvider && newProvider) {
+    await consciousnessStore.loadModelsForProvider(newProvider)
+    generationModel.value = ''
+  }
+})
+
 // Watch speech provider changes and reload models/voices
 watch(selectedSpeechProvider, async (newProvider, oldProvider) => {
   if (oldProvider !== undefined && newProvider !== oldProvider && newProvider) {
@@ -192,6 +541,7 @@ watch(selectedSpeechProvider, async (newProvider, oldProvider) => {
     if (metadata?.capabilities.listModels) {
       await providersStore.fetchModelsForProvider(newProvider)
     }
+    await loadActingSpeechCapabilities(newProvider)
     // Reset model and voice selection
     selectedSpeechModel.value = ''
     selectedSpeechVoiceId.value = ''
@@ -229,19 +579,22 @@ const tabs: Tab[] = [
     icon: 'i-solar:emoji-funny-square-bold-duotone',
   },
   { id: 'behavior', label: t('settings.pages.card.creation.behavior'), icon: 'i-solar:chat-round-line-bold-duotone' },
+  { id: 'generation', label: 'Generation', icon: 'i-solar:tuning-square-bold-duotone' },
+  { id: 'acting', label: 'Acting', icon: 'i-solar:mask-happly-bold-duotone' },
   { id: 'modules', label: t('settings.pages.card.modules'), icon: 'i-solar:widget-4-bold-duotone' },
   { id: 'artistry', label: t('settings.pages.modules.artistry.title'), icon: 'i-solar:gallery-bold-duotone' },
-  { id: 'settings', label: t('settings.pages.card.creation.settings'), icon: 'i-solar:settings-bold-duotone' },
+  {
+    id: 'proactivity',
+    label: t('settings.pages.card.creation.proactivity', 'Proactivity'),
+    icon: 'i-solar:heart-pulse-bold-duotone',
+  },
 ]
 
 // Active tab state - set to first available tab by default
 const activeTab = computed({
   get: () => {
     // If current active tab is not in available tabs, reset to first tab
-    if (!tabs.some((tab) => tab.id === activeTabId.value)) {
-      if (props.initialTab && tabs.some((tab) => tab.id === props.initialTab)) return props.initialTab
-      return tabs[0]?.id || ''
-    }
+    if (!tabs.find((tab) => tab.id === activeTabId.value)) return tabs[0]?.id || ''
     return activeTabId.value
   },
   set: (value: string) => {
@@ -249,25 +602,18 @@ const activeTab = computed({
   },
 })
 
-// Reset active tab when dialog opens
-watch(
-  () => props.modelValue,
-  (isOpen) => {
-    if (isOpen) {
-      if (props.initialTab && tabs.some((tab) => tab.id === props.initialTab)) activeTabId.value = props.initialTab
-      else activeTabId.value = '' // Let computed handle default
-    }
-  },
-)
-
 // Check for errors, and save built Cards :
 
 const showError = ref<boolean>(false)
 const errorMessage = ref<string>('')
 
-function saveCard(card: Card): boolean {
+async function saveCard(card: Card): Promise<boolean> {
   // Before saving, let's validate what the user entered :
   const rawCard: Card = toRaw(card)
+  const existingAiriExt =
+    isEditMode.value && props.cardId
+      ? (cardStore.getCard(props.cardId)?.extensions?.airi as AiriExtension | undefined)
+      : undefined
 
   if (!((rawCard.name?.length ?? 0) > 0)) {
     // No name
@@ -305,32 +651,32 @@ function saveCard(card: Card): boolean {
     errorMessage.value = t('settings.pages.card.creation.errors.posthistoryinstructions')
     return false
   }
-
-  // Validate Artistry JSON if provided
-  if (selectedArtistryConfigStr.value.trim()) {
-    try {
-      const parsed = JSON.parse(selectedArtistryConfigStr.value)
-      if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
-        throw new Error('Not an object')
-      }
-    } catch (e) {
-      showError.value = true
-      errorMessage.value = t('settings.pages.card.creation.errors.invalid_artistry_json')
-      return false
-    }
-  }
-
   showError.value = false
 
-  // Build options with final safety parse
-  let artistryOptions: Record<string, any> | undefined
-  if (selectedArtistryConfigStr.value.trim()) {
-    try {
-      artistryOptions = JSON.parse(selectedArtistryConfigStr.value)
-    } catch {
-      // Should not happen due to validation above
-      artistryOptions = undefined
-    }
+  const generationKnown = {
+    maxTokens: normalizeOptionalNumber(generationMaxTokens.value),
+    temperature: normalizeOptionalNumber(generationTemperature.value),
+    topP: normalizeOptionalNumber(generationTopP.value),
+    contextWidth: normalizeOptionalNumber(generationContextWidth.value),
+    reasoningFallback: generationReasoningFallback.value,
+  }
+  let generationAdvanced: Record<string, any> | undefined
+
+  try {
+    generationAdvanced = generationAdvancedJson.value.trim() ? JSON.parse(generationAdvancedJson.value) : undefined
+  } catch {
+    showError.value = true
+    errorMessage.value = 'Generation Advanced JSON must be valid JSON before saving.'
+    return false
+  }
+
+  let artistryConfig: Record<string, any> | undefined
+  try {
+    artistryConfig = selectedArtistryConfigStr.value.trim() ? JSON.parse(selectedArtistryConfigStr.value) : undefined
+  } catch {
+    showError.value = true
+    errorMessage.value = 'Artistry Config must be valid JSON before saving.'
+    return false
   }
 
   // Build card with modules extension
@@ -339,7 +685,9 @@ function saveCard(card: Card): boolean {
     extensions: {
       ...rawCard.extensions,
       airi: {
+        ...existingAiriExt,
         modules: {
+          ...existingAiriExt?.modules,
           consciousness: {
             provider: selectedConsciousnessProvider.value || consciousnessProvider.value,
             model: selectedConsciousnessModel.value || defaultConsciousnessModel.value,
@@ -350,31 +698,102 @@ function saveCard(card: Card): boolean {
             voice_id: selectedSpeechVoiceId.value || defaultSpeechVoiceId.value,
           },
           displayModelId: selectedDisplayModelId.value || defaultDisplayModelId.value,
-          artistry: {
-            provider: selectedArtistryProvider.value || defaultArtistryProvider.value,
-            model: selectedArtistryModel.value,
-            promptPrefix: selectedArtistryPromptPrefix.value,
-            widgetInstruction: selectedArtistryWidgetInstruction.value,
-            spawnMode: selectedArtistrySpawnMode.value,
-            options: artistryOptions,
-            autonomousEnabled: selectedArtistryAutonomousEnabled.value,
-            autonomousThreshold: selectedArtistryAutonomousThreshold.value,
+          activeBackgroundId: selectedActiveBackgroundId.value || 'none',
+        },
+        agents: existingAiriExt?.agents || {},
+        heartbeats: {
+          ...existingAiriExt?.heartbeats,
+          enabled: heartbeatsEnabled.value,
+          intervalMinutes: heartbeatsIntervalMinutes.value,
+          prompt: heartbeatsPrompt.value,
+          injectIntoPrompt: heartbeatsInjectIntoPrompt.value,
+          useAsLocalGate: heartbeatsUseAsLocalGate.value,
+          contextOptions: {
+            ...existingAiriExt?.heartbeats?.contextOptions,
+            windowHistory: heartbeatsContextWindowHistory.value,
+            systemLoad: heartbeatsContextSystemLoad.value,
+            usageMetrics: heartbeatsContextUsageMetrics.value,
+          },
+          schedule: {
+            ...existingAiriExt?.heartbeats?.schedule,
+            start: heartbeatsScheduleStart.value,
+            end: heartbeatsScheduleEnd.value,
+          },
+          respectSchedule: heartbeatsRespectSchedule.value,
+        },
+        dreamState: {
+          ...existingAiriExt?.dreamState,
+          enabled: dreamStateEnabled.value,
+          strictAfkGating: dreamStateStrictAfkGating.value,
+          journalingThreshold: existingAiriExt?.dreamState?.journalingThreshold || 'balanced',
+          maxSessionsPerDay: existingAiriExt?.dreamState?.maxSessionsPerDay || 4,
+          sessionTimeoutMinutes: existingAiriExt?.dreamState?.sessionTimeoutMinutes || 60,
+          afkThresholdMinutes: existingAiriExt?.dreamState?.afkThresholdMinutes || 5,
+          minConversationTurns: existingAiriExt?.dreamState?.minConversationTurns || 4,
+          lastProcessedAt: existingAiriExt?.dreamState?.lastProcessedAt,
+          dailyRunDate: existingAiriExt?.dreamState?.dailyRunDate,
+          dailyRunCount: existingAiriExt?.dreamState?.dailyRunCount ?? 0,
+        },
+        acting: {
+          ...existingAiriExt?.acting,
+          modelExpressionPrompt: selectedActingModelExpressionPrompt.value,
+          speechExpressionPrompt: selectedActingSpeechExpressionPrompt.value,
+          speechMannerismPrompt: selectedActingSpeechMannerismPrompt.value,
+          idleAnimations: [...(selectedActingIdleAnimations.value || [])],
+        },
+        generation: {
+          ...existingAiriExt?.generation,
+          enabled: generationEnabled.value,
+          provider: generationProvider.value || selectedConsciousnessProvider.value || consciousnessProvider.value,
+          model: generationModel.value || selectedConsciousnessModel.value || defaultConsciousnessModel.value,
+          known: {
+            ...existingAiriExt?.generation?.known,
+            ...generationKnown,
+          },
+          advanced: generationAdvanced,
+          compaction: {
+            strategy: compactionStrategy.value,
+            minKeepTurns: compactionMinKeepTurns.value ?? 15,
           },
         },
-        agents: {},
+        groundingEnabled: groundingEnabled.value,
+        visual_assets: existingAiriExt?.visual_assets || {},
+        active_concepts: existingAiriExt?.active_concepts || [],
+        eternal_record: existingAiriExt?.eternal_record || { relational_milestones: [], lore_bits: [] },
       } as AiriExtension,
     },
   }
-  if (isEditMode.value && props.cardId) {
-    // Edit mode: update existing card
-    cardStore.updateCard(props.cardId, cardWithModules)
-  } else {
-    // Create mode: add new card
-    cardStore.addCard(cardWithModules)
+
+  // Inject artistry manually to avoid TS errors
+  cardWithModules.extensions.airi.artistry = {
+    provider: selectedArtistryProvider.value || defaultArtistryProvider.value,
+    model: selectedArtistryModel.value,
+    promptPrefix: selectedArtistryPromptPrefix.value,
+    widgetInstruction: selectedArtistryWidgetInstruction.value,
+    spawnMode: selectedArtistrySpawnMode.value,
+    autonomousEnabled: selectedArtistryAutonomousEnabled.value,
+    autonomousThreshold: selectedArtistryAutonomousThreshold.value,
+    autonomousTarget: selectedArtistryAutonomousTarget.value,
+    autonomousMonitorEnabled: selectedArtistryAutonomousMonitorEnabled.value,
+    autonomousHistoryDepth: selectedArtistryAutonomousHistoryDepth.value,
+    options: artistryConfig,
   }
 
-  modelValue.value = false // Close this
-  return true
+  try {
+    if (isEditMode.value && props.cardId) {
+      // Edit mode: update existing card
+      cardStore.updateCard(props.cardId, cardWithModules)
+    } else {
+      // Create mode: add new card
+      await cardStore.addCard(cardWithModules)
+    }
+
+    modelValue.value = false // Close this
+    return true
+  } catch (error) {
+    toast.error(errorMessageFrom(error) ?? 'Failed to save card.')
+    return false
+  }
 }
 
 // Cards data holders :
@@ -383,7 +802,7 @@ function saveCard(card: Card): boolean {
 function initializeCard(): Card {
   // Extract existing card data if in edit mode
   const existingCard = isEditMode.value && props.cardId ? cardStore.getCard(props.cardId) : undefined
-  const airiExt = existingCard?.extensions?.airi as AiriExtensionWithLegacyArtistry | undefined
+  const airiExt = existingCard?.extensions?.airi as AiriExtension | undefined
 
   // Initialize module selections with fallback logic (handles all cases: create, edit with/without extension)
   selectedConsciousnessProvider.value = airiExt?.modules?.consciousness?.provider || consciousnessProvider.value
@@ -392,24 +811,63 @@ function initializeCard(): Card {
   selectedSpeechModel.value = airiExt?.modules?.speech?.model || defaultSpeechModel.value
   selectedSpeechVoiceId.value = airiExt?.modules?.speech?.voice_id || defaultSpeechVoiceId.value
   selectedDisplayModelId.value = airiExt?.modules?.displayModelId || defaultDisplayModelId.value
-
-  // NOTICE: keep legacy `extensions.airi.artistry` fallback so existing cards continue to load.
-  const artistrySettings = airiExt?.modules?.artistry || airiExt?.artistry
-  selectedArtistryProvider.value = artistrySettings?.provider || defaultArtistryProvider.value
-  selectedArtistryModel.value = artistrySettings?.model || ''
-  selectedArtistryPromptPrefix.value = artistrySettings?.promptPrefix || ''
-  selectedArtistryWidgetInstruction.value = artistrySettings?.widgetInstruction || DEFAULT_ARTISTRY_WIDGET_INSTRUCTION
-  selectedArtistrySpawnMode.value = (artistrySettings as any)?.spawnMode || 'bg_widget'
-  selectedArtistryAutonomousEnabled.value = (artistrySettings as any)?.autonomousEnabled ?? false
-  selectedArtistryAutonomousThreshold.value = (artistrySettings as any)?.autonomousThreshold ?? 70
-
+  const activeBg = airiExt?.modules?.activeBackgroundId || (airiExt?.modules as any)?.preferredBackgroundId
+  selectedActiveBackgroundId.value = !activeBg ? 'none' : activeBg
+  selectedArtistryProvider.value = airiExt?.artistry?.provider || defaultArtistryProvider.value
+  selectedArtistryModel.value = airiExt?.artistry?.model || ''
+  selectedArtistryPromptPrefix.value = airiExt?.artistry?.promptPrefix || ''
+  selectedArtistryWidgetInstruction.value = airiExt?.artistry?.widgetInstruction || DEFAULT_ARTISTRY_WIDGET_INSTRUCTION
+  selectedArtistryAutonomousEnabled.value = airiExt?.artistry?.autonomousEnabled ?? false
+  selectedArtistryAutonomousThreshold.value = airiExt?.artistry?.autonomousThreshold ?? 70
+  selectedArtistryAutonomousMonitorEnabled.value = airiExt?.artistry?.autonomousMonitorEnabled ?? true
+  selectedArtistryAutonomousHistoryDepth.value = airiExt?.artistry?.autonomousHistoryDepth ?? 3
+  selectedArtistryAutonomousTarget.value = airiExt?.artistry?.autonomousTarget ?? 'user'
+  selectedArtistrySpawnMode.value = airiExt?.artistry?.spawnMode ?? 'bg_widget'
+  generationEnabled.value = airiExt?.generation?.enabled ?? false
+  generationProvider.value =
+    airiExt?.generation?.provider || airiExt?.modules?.consciousness?.provider || consciousnessProvider.value
+  generationModel.value =
+    airiExt?.generation?.model || airiExt?.modules?.consciousness?.model || defaultConsciousnessModel.value
+  generationMaxTokens.value = normalizeOptionalNumber(airiExt?.generation?.known?.maxTokens)
+  generationTemperature.value = normalizeOptionalNumber(airiExt?.generation?.known?.temperature)
+  generationTopP.value = normalizeOptionalNumber(airiExt?.generation?.known?.topP)
+  generationContextWidth.value = normalizeOptionalNumber(airiExt?.generation?.known?.contextWidth)
+  generationReasoningFallback.value = airiExt?.generation?.known?.reasoningFallback ?? true
+  generationAdvancedJson.value = airiExt?.generation?.advanced
+    ? JSON.stringify(airiExt.generation.advanced, null, 2)
+    : '{\n  \n}'
+  selectedActingModelExpressionPrompt.value = airiExt?.acting?.modelExpressionPrompt || DEFAULT_ACTING_MODEL_PROMPT
+  selectedActingSpeechExpressionPrompt.value =
+    airiExt?.acting?.speechExpressionPrompt || DEFAULT_ACTING_SPEECH_EXPRESSION_PROMPT
+  selectedActingSpeechMannerismPrompt.value =
+    airiExt?.acting?.speechMannerismPrompt || DEFAULT_ACTING_SPEECH_MANNERISM_PROMPT
+  selectedActingIdleAnimations.value = [...(airiExt?.acting?.idleAnimations || [])]
+  compactionStrategy.value = airiExt?.generation?.compaction?.strategy || 'none'
+  compactionMinKeepTurns.value = airiExt?.generation?.compaction?.minKeepTurns ?? 15
   try {
-    selectedArtistryConfigStr.value = artistrySettings?.options
-      ? JSON.stringify(artistrySettings.options, null, 2)
+    selectedArtistryConfigStr.value = airiExt?.artistry?.options
+      ? JSON.stringify(airiExt.artistry.options, null, 2)
       : '{\n  \n}'
   } catch {
     selectedArtistryConfigStr.value = '{\n  \n}'
   }
+
+  heartbeatsEnabled.value = airiExt?.heartbeats?.enabled ?? false
+  heartbeatsIntervalMinutes.value = airiExt?.heartbeats?.intervalMinutes ?? 5
+  heartbeatsPrompt.value = airiExt?.heartbeats?.prompt ?? DEFAULT_HEARTBEATS_PROMPT
+  heartbeatsInjectIntoPrompt.value = airiExt?.heartbeats?.injectIntoPrompt ?? true
+  heartbeatsUseAsLocalGate.value = airiExt?.heartbeats?.useAsLocalGate ?? true
+  heartbeatsScheduleStart.value = airiExt?.heartbeats?.schedule?.start ?? '09:00'
+  heartbeatsScheduleEnd.value = airiExt?.heartbeats?.schedule?.end ?? '22:00'
+  heartbeatsContextWindowHistory.value = airiExt?.heartbeats?.contextOptions?.windowHistory ?? true
+  heartbeatsContextSystemLoad.value = airiExt?.heartbeats?.contextOptions?.systemLoad ?? true
+  heartbeatsContextUsageMetrics.value = airiExt?.heartbeats?.contextOptions?.usageMetrics ?? true
+  heartbeatsRespectSchedule.value = airiExt?.heartbeats?.respectSchedule ?? true
+  dreamStateEnabled.value = airiExt?.dreamState?.enabled ?? false
+  dreamStateStrictAfkGating.value = airiExt?.dreamState?.strictAfkGating ?? true
+  groundingEnabled.value = airiExt?.groundingEnabled ?? false
+
+  loadActingSpeechCapabilities(selectedSpeechProvider.value || speechProvider.value)
 
   // Return existing card data or defaults
   if (existingCard) {
@@ -425,7 +883,11 @@ function initializeCard(): Card {
     personality: t('settings.pages.card.creation.defaults.personality'),
     scenario: t('settings.pages.card.creation.defaults.scenario'),
     systemPrompt: t('settings.pages.card.creation.defaults.systemprompt'),
-    postHistoryInstructions: t('settings.pages.card.creation.defaults.posthistoryinstructions'),
+    postHistoryInstructions:
+      (t('settings.pages.card.creation.defaults.posthistoryinstructions') !==
+        'settings.pages.card.creation.defaults.posthistoryinstructions' &&
+        t('settings.pages.card.creation.defaults.posthistoryinstructions')) ||
+      DEFAULT_POST_HISTORY_INSTRUCTIONS,
     greetings: [],
     messageExample: [],
   }
@@ -486,11 +948,117 @@ const cardVersion = makeComputed('version')
 const cardSystemPrompt = makeComputed('systemPrompt')
 const cardPostHistoryInstructions = makeComputed('postHistoryInstructions')
 
+function normalizeOptionalNumber(value: unknown): number | undefined {
+  if (typeof value === 'number') return Number.isFinite(value) ? value : undefined
+
+  if (typeof value === 'string') {
+    const trimmed = value.trim()
+    if (!trimmed) return undefined
+
+    const parsed = Number(trimmed)
+    return Number.isFinite(parsed) ? parsed : undefined
+  }
+
+  return undefined
+}
+
 // Helper function to generate placeholder text for default values
 function getDefaultPlaceholder(defaultValue: string | undefined): string {
   return defaultValue
     ? `${t('settings.pages.card.creation.use_default')} (${defaultValue})`
     : t('settings.pages.card.creation.use_default_not_configured')
+}
+
+// Sparkle AI Generator Modal State and Methods
+const showGeneratorModal = ref(false)
+const generatorFieldId = ref('')
+const generatorFieldLabel = ref('')
+const generatorFieldValue = ref('')
+
+const generatorCardContext = computed(() => ({
+  name: cardName.value,
+  nickname: cardNickname.value,
+  description: cardDescription.value,
+  personality: cardPersonality.value,
+  scenario: cardScenario.value,
+  systemPrompt: cardSystemPrompt.value,
+  proactivitySensorPayload: sensorPayload.value || staticSamplePayload,
+}))
+
+const generatorActingContext = computed(() => {
+  const flatSpeechTags = actingGroupedExpressionTags.value
+    ? actingGroupedExpressionTags.value.flatMap((group) => group.tags.map((t) => t.tag))
+    : []
+
+  return {
+    isLive2d: isLive2d.value,
+    modelExpressions: actingModelExpressionOptions.value || [],
+    speechTags: flatSpeechTags,
+    speechProvider: selectedSpeechProvider.value || speechProvider.value || 'none',
+  }
+})
+
+function openSparkleGenerator(fieldId: string) {
+  generatorFieldId.value = fieldId
+  if (fieldId === 'description') {
+    generatorFieldLabel.value = t('settings.pages.card.creation.description')
+    generatorFieldValue.value = cardDescription.value
+  } else if (fieldId === 'systemPrompt') {
+    generatorFieldLabel.value = t('settings.pages.card.systemprompt')
+    generatorFieldValue.value = cardSystemPrompt.value
+  } else if (fieldId === 'postHistoryInstructions') {
+    generatorFieldLabel.value = t('settings.pages.card.posthistoryinstructions')
+    generatorFieldValue.value = cardPostHistoryInstructions.value
+  } else if (fieldId === 'personality') {
+    generatorFieldLabel.value = t('settings.pages.card.personality')
+    generatorFieldValue.value = cardPersonality.value
+  } else if (fieldId === 'scenario') {
+    generatorFieldLabel.value = t('settings.pages.card.scenario')
+    generatorFieldValue.value = cardScenario.value
+  } else if (fieldId === 'greetings') {
+    generatorFieldLabel.value = t('settings.pages.card.creation.greetings')
+    generatorFieldValue.value = cardGreetings.value.join('\n')
+  } else if (fieldId === 'actingModelExpression') {
+    generatorFieldLabel.value = 'ACT / Model Expressions'
+    generatorFieldValue.value = selectedActingModelExpressionPrompt.value
+  } else if (fieldId === 'actingSpeechExpression') {
+    generatorFieldLabel.value = 'Speech Tags / Audio Expressions'
+    generatorFieldValue.value = selectedActingSpeechExpressionPrompt.value
+  } else if (fieldId === 'artistryPromptPrefix') {
+    generatorFieldLabel.value = 'Artistry Prompt Default Prefix'
+    generatorFieldValue.value = selectedArtistryPromptPrefix.value
+  } else if (fieldId === 'heartbeatsPrompt') {
+    generatorFieldLabel.value = 'Stealth Heartbeat Prompt'
+    generatorFieldValue.value = heartbeatsPrompt.value
+  }
+  showGeneratorModal.value = true
+}
+
+function handleGeneratorSave(newValue: string) {
+  if (generatorFieldId.value === 'description') {
+    cardDescription.value = newValue
+  } else if (generatorFieldId.value === 'systemPrompt') {
+    cardSystemPrompt.value = newValue
+  } else if (generatorFieldId.value === 'postHistoryInstructions') {
+    cardPostHistoryInstructions.value = newValue
+  } else if (generatorFieldId.value === 'personality') {
+    cardPersonality.value = newValue
+  } else if (generatorFieldId.value === 'scenario') {
+    cardScenario.value = newValue
+  } else if (generatorFieldId.value === 'greetings') {
+    cardGreetings.value = newValue
+      .split('\n')
+      .map((s) => s.trim())
+      .filter(Boolean)
+  } else if (generatorFieldId.value === 'actingModelExpression') {
+    selectedActingModelExpressionPrompt.value = newValue
+  } else if (generatorFieldId.value === 'actingSpeechExpression') {
+    selectedActingSpeechExpressionPrompt.value = newValue
+  } else if (generatorFieldId.value === 'artistryPromptPrefix') {
+    selectedArtistryPromptPrefix.value = newValue
+  } else if (generatorFieldId.value === 'heartbeatsPrompt') {
+    heartbeatsPrompt.value = newValue
+  }
 }
 </script>
 
@@ -502,7 +1070,6 @@ function getDefaultPlaceholder(defaultValue: string | undefined): string {
       />
       <DialogContent
         class="fixed left-1/2 top-1/2 z-100 m-0 max-h-[90vh] max-w-6xl w-[92vw] flex flex-col overflow-auto border border-neutral-200 rounded-xl bg-white p-5 shadow-xl 2xl:w-[60vw] lg:w-[80vw] md:w-[85vw] xl:w-[70vw] -translate-x-1/2 -translate-y-1/2 data-[state=closed]:animate-contentHide data-[state=open]:animate-contentShow dark:border-neutral-700 dark:bg-neutral-800 sm:p-6"
-        @interact-outside.prevent
       >
         <div class="w-full flex flex-col gap-5">
           <DialogTitle
@@ -516,7 +1083,7 @@ function getDefaultPlaceholder(defaultValue: string | undefined): string {
           <!-- Dialog tabs -->
           <div class="mt-4">
             <div class="border-b border-neutral-200 dark:border-neutral-700">
-              <div class="flex justify-center -mb-px sm:justify-start space-x-1">
+              <div class="flex flex-wrap justify-center gap-x-1 gap-y-1.5 -mb-px sm:justify-start">
                 <button
                   v-for="tab in tabs"
                   :key="tab.id"
@@ -545,244 +1112,87 @@ function getDefaultPlaceholder(defaultValue: string | undefined): string {
           </div>
 
           <!-- Actual content -->
-          <!-- Identity details -->
-          <div v-if="activeTab === 'identity'" class="tab-content ml-auto mr-auto w-95%">
-            <p class="mb-3">
-              {{ t('settings.pages.card.creation.fields_info.subtitle') }}
-            </p>
-
-            <div class="input-list ml-auto mr-auto w-90% flex flex-row flex-wrap justify-center gap-8">
-              <FieldInput
-                v-model="cardName"
-                :label="t('settings.pages.card.creation.name')"
-                :description="t('settings.pages.card.creation.fields_info.name')"
-                :required="true"
-              />
-              <FieldInput
-                v-model="cardNickname"
-                :label="t('settings.pages.card.creation.nickname')"
-                :description="t('settings.pages.card.creation.fields_info.nickname')"
-              />
-              <FieldInput
-                v-model="cardDescription"
-                :label="t('settings.pages.card.creation.description')"
-                :single-line="false"
-                :required="true"
-                :description="t('settings.pages.card.creation.fields_info.description')"
-              />
-              <FieldInput
-                v-model="cardNotes"
-                :label="t('settings.pages.card.creator_notes')"
-                :single-line="false"
-                :description="t('settings.pages.card.creation.fields_info.notes')"
-              />
-            </div>
-          </div>
-          <!-- Behavior -->
-          <div v-else-if="activeTab === 'behavior'" class="tab-content ml-auto mr-auto w-95%">
-            <div class="input-list ml-auto mr-auto w-90% flex flex-row flex-wrap justify-center gap-8">
-              <FieldInput
-                v-model="cardPersonality"
-                :label="t('settings.pages.card.personality')"
-                :single-line="false"
-                :required="true"
-                :description="t('settings.pages.card.creation.fields_info.personality')"
-              />
-              <FieldInput
-                v-model="cardScenario"
-                :label="t('settings.pages.card.scenario')"
-                :single-line="false"
-                :required="true"
-                :description="t('settings.pages.card.creation.fields_info.scenario')"
-              />
-              <FieldValues
-                v-model="cardGreetings"
-                :label="t('settings.pages.card.creation.greetings')"
-                :description="t('settings.pages.card.creation.fields_info.greetings')"
-              />
-            </div>
-          </div>
-          <!-- Modules -->
-          <div v-else-if="activeTab === 'modules'" class="tab-content ml-auto mr-auto w-95%">
-            <p class="mb-3">
-              {{ t('settings.pages.card.creation.modules_info') }}
-            </p>
-
-            <div :class="['grid', 'grid-cols-1', 'sm:grid-cols-2', 'gap-4', 'ml-auto', 'mr-auto', 'w-90%']">
-              <!-- Consciousness Provider -->
-              <div :class="['flex', 'flex-col', 'gap-2']">
-                <label
-                  :class="[
-                    'flex',
-                    'flex-row',
-                    'items-center',
-                    'gap-2',
-                    'text-sm',
-                    'text-neutral-500',
-                    'dark:text-neutral-400',
-                  ]"
-                >
-                  <div i-lucide:brain />
-                  {{ t('settings.pages.card.chat.provider') }}
-                </label>
-                <ComboboxSelect
-                  v-model="selectedConsciousnessProvider"
-                  :options="consciousnessProviderOptions"
-                  :placeholder="getDefaultPlaceholder(consciousnessProvider)"
-                  class="w-full"
-                />
-              </div>
-
-              <!-- Consciousness Model -->
-              <div :class="['flex', 'flex-col', 'gap-2']">
-                <label
-                  :class="[
-                    'flex',
-                    'flex-row',
-                    'items-center',
-                    'gap-2',
-                    'text-sm',
-                    'text-neutral-500',
-                    'dark:text-neutral-400',
-                  ]"
-                >
-                  <div i-lucide:ghost />
-                  {{ t('settings.pages.card.consciousness.model') }}
-                </label>
-                <ComboboxSelect
-                  v-model="selectedConsciousnessModel"
-                  :options="consciousnessModelOptions"
-                  :placeholder="getDefaultPlaceholder(defaultConsciousnessModel)"
-                  :disabled="!selectedConsciousnessProvider && !consciousnessProvider"
-                  class="w-full"
-                />
-              </div>
-
-              <!-- Speech Provider -->
-              <div :class="['flex', 'flex-col', 'gap-2']">
-                <label
-                  :class="[
-                    'flex',
-                    'flex-row',
-                    'items-center',
-                    'gap-2',
-                    'text-sm',
-                    'text-neutral-500',
-                    'dark:text-neutral-400',
-                  ]"
-                >
-                  <div i-lucide:radio />
-                  {{ t('settings.pages.card.speech.provider') }}
-                </label>
-                <ComboboxSelect
-                  v-model="selectedSpeechProvider"
-                  :options="speechProviderOptions"
-                  :placeholder="getDefaultPlaceholder(speechProvider)"
-                  class="w-full"
-                />
-              </div>
-
-              <!-- Speech Model -->
-              <div :class="['flex', 'flex-col', 'gap-2']">
-                <label
-                  :class="[
-                    'flex',
-                    'flex-row',
-                    'items-center',
-                    'gap-2',
-                    'text-sm',
-                    'text-neutral-500',
-                    'dark:text-neutral-400',
-                  ]"
-                >
-                  <div i-lucide:mic />
-                  {{ t('settings.pages.card.speech.model') }}
-                </label>
-                <ComboboxSelect
-                  v-model="selectedSpeechModel"
-                  :options="speechModelOptions"
-                  :placeholder="getDefaultPlaceholder(defaultSpeechModel)"
-                  :disabled="!selectedSpeechProvider && !speechProvider"
-                  class="w-full"
-                />
-              </div>
-
-              <!-- Speech Voice -->
-              <div :class="['flex', 'flex-col', 'gap-2']">
-                <label
-                  :class="[
-                    'flex',
-                    'flex-row',
-                    'items-center',
-                    'gap-2',
-                    'text-sm',
-                    'text-neutral-500',
-                    'dark:text-neutral-400',
-                  ]"
-                >
-                  <div i-lucide:music />
-                  {{ t('settings.pages.card.speech.voice') }}
-                </label>
-                <ComboboxSelect
-                  v-model="selectedSpeechVoiceId"
-                  :options="speechVoiceOptions"
-                  :placeholder="getDefaultPlaceholder(defaultSpeechVoiceId)"
-                  :disabled="!selectedSpeechProvider && !speechProvider"
-                  class="w-full"
-                />
-              </div>
-
-              <!-- Display Model (Body) -->
-              <div :class="['flex', 'flex-col', 'gap-2', 'sm:col-span-2']">
-                <label
-                  :class="[
-                    'flex',
-                    'flex-row',
-                    'items-center',
-                    'gap-2',
-                    'text-sm',
-                    'text-neutral-500',
-                    'dark:text-neutral-400',
-                  ]"
-                >
-                  <div i-solar:ghost-bold-duotone />
-                  {{ t('settings.pages.card.body-model') }}
-                </label>
-                <ComboboxSelect
-                  v-model="selectedDisplayModelId"
-                  :options="displayModelOptions"
-                  :placeholder="getDefaultPlaceholder(defaultDisplayModelId)"
-                  class="w-full"
-                />
-              </div>
-            </div>
-          </div>
-          <!-- Settings -->
-          <div v-else-if="activeTab === 'settings'" class="tab-content ml-auto mr-auto w-95%">
-            <div class="input-list ml-auto mr-auto w-90% flex flex-row flex-wrap justify-center gap-8">
-              <FieldInput
-                v-model="cardSystemPrompt"
-                :label="t('settings.pages.card.systemprompt')"
-                :single-line="false"
-                :required="true"
-                :description="t('settings.pages.card.creation.fields_info.systemprompt')"
-              />
-              <FieldInput
-                v-model="cardPostHistoryInstructions"
-                :label="t('settings.pages.card.posthistoryinstructions')"
-                :single-line="false"
-                :required="true"
-                :description="t('settings.pages.card.creation.fields_info.posthistoryinstructions')"
-              />
-              <FieldInput
-                v-model="cardVersion"
-                :label="t('settings.pages.card.creation.version')"
-                :required="true"
-                :description="t('settings.pages.card.creation.fields_info.version')"
-              />
-            </div>
-          </div>
-          <!-- Artistry -->
+          <CardCreationTabIdentity
+            v-if="activeTab === 'identity'"
+            v-model:card-name="cardName"
+            v-model:card-nickname="cardNickname"
+            v-model:card-description="cardDescription"
+            v-model:card-notes="cardNotes"
+            v-model:card-system-prompt="cardSystemPrompt"
+            v-model:card-version="cardVersion"
+            @sparkle-click="openSparkleGenerator"
+          />
+          <CardCreationTabBehavior
+            v-else-if="activeTab === 'behavior'"
+            v-model:card-personality="cardPersonality"
+            v-model:card-scenario="cardScenario"
+            v-model:card-greetings="cardGreetings"
+            @sparkle-click="openSparkleGenerator"
+          />
+          <CardCreationTabGeneration
+            v-else-if="activeTab === 'generation'"
+            v-model:generation-enabled="generationEnabled"
+            v-model:generation-provider="generationProvider"
+            v-model:generation-model="generationModel"
+            v-model:generation-max-tokens="generationMaxTokens"
+            v-model:generation-temperature="generationTemperature"
+            v-model:generation-top-p="generationTopP"
+            v-model:generation-context-width="generationContextWidth"
+            v-model:generation-advanced-json="generationAdvancedJson"
+            v-model:generation-reasoning-fallback="generationReasoningFallback"
+            v-model:card-post-history-instructions="cardPostHistoryInstructions"
+            v-model:compaction-strategy="compactionStrategy"
+            v-model:compaction-min-keep-turns="compactionMinKeepTurns"
+            :provider-options="generationProviderOptions"
+            :model-options="generationModelOptions"
+            :provider-placeholder="getDefaultPlaceholder(selectedConsciousnessProvider || consciousnessProvider)"
+            :model-placeholder="getDefaultPlaceholder(selectedConsciousnessModel || defaultConsciousnessModel)"
+            @sparkle-click="openSparkleGenerator"
+          />
+          <CardCreationTabActing
+            v-else-if="activeTab === 'acting'"
+            v-model:selected-acting-model-expression-prompt="selectedActingModelExpressionPrompt"
+            v-model:selected-acting-speech-expression-prompt="selectedActingSpeechExpressionPrompt"
+            v-model:selected-acting-speech-mannerism-prompt="selectedActingSpeechMannerismPrompt"
+            v-model:selected-acting-idle-animations="selectedActingIdleAnimations"
+            :acting-idle-animation-options="actingIdleAnimationOptions"
+            :acting-model-expression-options="actingModelExpressionOptions"
+            :acting-grouped-expression-tags="actingGroupedExpressionTags"
+            :acting-mannerism-options="actingMannerismOptions"
+            :acting-speech-capabilities-loading="actingSpeechCapabilitiesLoading"
+            :selected-speech-provider-label="selectedSpeechProvider || speechProvider || 'none'"
+            :is-live2d="isLive2d"
+            :is-vrma-expression="isVrmaExpression"
+            :insert-model-expression="insertModelExpression"
+            :insert-speech-tag="insertSpeechTag"
+            :insert-speech-mannerism="insertSpeechMannerism"
+            @sparkle-click="openSparkleGenerator"
+          />
+          <CardCreationTabModules
+            v-else-if="activeTab === 'modules'"
+            v-model:selected-consciousness-provider="selectedConsciousnessProvider"
+            v-model:selected-consciousness-model="selectedConsciousnessModel"
+            v-model:selected-speech-provider="selectedSpeechProvider"
+            v-model:selected-speech-model="selectedSpeechModel"
+            v-model:selected-speech-voice-id="selectedSpeechVoiceId"
+            v-model:selected-display-model-id="selectedDisplayModelId"
+            v-model:selected-active-background-id="selectedActiveBackgroundId"
+            :consciousness-provider-options="consciousnessProviderOptions"
+            :consciousness-model-options="consciousnessModelOptions"
+            :speech-provider-options="speechProviderOptions"
+            :speech-model-options="speechModelOptions"
+            :speech-voice-options="speechVoiceOptions"
+            :display-model-options="displayModelOptions"
+            :scene-options="sceneOptions"
+            :consciousness-provider-placeholder="getDefaultPlaceholder(consciousnessProvider)"
+            :default-consciousness-model-placeholder="getDefaultPlaceholder(defaultConsciousnessModel)"
+            :speech-provider-placeholder="getDefaultPlaceholder(speechProvider)"
+            :default-speech-model-placeholder="getDefaultPlaceholder(defaultSpeechModel)"
+            :default-speech-voice-id-placeholder="getDefaultPlaceholder(defaultSpeechVoiceId)"
+            :default-display-model-id-placeholder="getDefaultPlaceholder(defaultDisplayModelId)"
+            :consciousness-provider-active="Boolean(consciousnessProvider)"
+            :speech-provider-active="Boolean(speechProvider)"
+          />
           <CardCreationTabArtistry
             v-else-if="activeTab === 'artistry'"
             v-model:selected-artistry-provider="selectedArtistryProvider"
@@ -791,12 +1201,35 @@ function getDefaultPlaceholder(defaultValue: string | undefined): string {
             v-model:selected-artistry-widget-instruction="selectedArtistryWidgetInstruction"
             v-model:selected-artistry-autonomous-enabled="selectedArtistryAutonomousEnabled"
             v-model:selected-artistry-autonomous-threshold="selectedArtistryAutonomousThreshold"
+            v-model:selected-artistry-autonomous-monitor-enabled="selectedArtistryAutonomousMonitorEnabled"
+            v-model:selected-artistry-autonomous-history-depth="selectedArtistryAutonomousHistoryDepth"
+            v-model:selected-artistry-autonomous-target="selectedArtistryAutonomousTarget"
             v-model:selected-artistry-spawn-mode="selectedArtistrySpawnMode"
             v-model:selected-artistry-config-str="selectedArtistryConfigStr"
             :artistry-provider-options="artistryProviderOptions"
             :default-artistry-provider-placeholder="getDefaultPlaceholder(defaultArtistryProvider)"
+            @sparkle-click="openSparkleGenerator"
           />
-
+          <CardCreationTabProactivity
+            v-else-if="activeTab === 'proactivity'"
+            v-model:heartbeats-enabled="heartbeatsEnabled"
+            v-model:heartbeats-interval-minutes="heartbeatsIntervalMinutes"
+            v-model:heartbeats-prompt="heartbeatsPrompt"
+            v-model:heartbeats-inject-into-prompt="heartbeatsInjectIntoPrompt"
+            v-model:heartbeats-use-as-local-gate="heartbeatsUseAsLocalGate"
+            v-model:heartbeats-schedule-start="heartbeatsScheduleStart"
+            v-model:heartbeats-schedule-end="heartbeatsScheduleEnd"
+            v-model:heartbeats-context-window-history="heartbeatsContextWindowHistory"
+            v-model:heartbeats-context-system-load="heartbeatsContextSystemLoad"
+            v-model:heartbeats-context-usage-metrics="heartbeatsContextUsageMetrics"
+            v-model:heartbeats-respect-schedule="heartbeatsRespectSchedule"
+            v-model:dream-state-enabled="dreamStateEnabled"
+            v-model:dream-state-strict-afk-gating="dreamStateStrictAfkGating"
+            v-model:grounding-enabled="groundingEnabled"
+            :sensor-payload="sensorPayload"
+            :static-sample-payload="staticSamplePayload"
+            @sparkle-click="openSparkleGenerator"
+          />
           <div class="ml-auto mr-1 flex flex-row gap-2">
             <Button
               variant="secondary"
@@ -817,17 +1250,15 @@ function getDefaultPlaceholder(defaultValue: string | undefined): string {
       </DialogContent>
     </DialogPortal>
   </DialogRoot>
+
+  <!-- Sparkle AI Generator Modal -->
+  <FieldAiGeneratorModal
+    v-model="showGeneratorModal"
+    :field-id="generatorFieldId"
+    :field-label="generatorFieldLabel"
+    :initial-value="generatorFieldValue"
+    :card-context="generatorCardContext"
+    :acting-context="generatorActingContext"
+    @save="handleGeneratorSave"
+  />
 </template>
-
-<style scoped>
-.input-list > * {
-  min-width: 45%;
-}
-
-@media (max-width: 641px) {
-  .input-list * {
-    min-width: unset;
-    width: 100%;
-  }
-}
-</style>

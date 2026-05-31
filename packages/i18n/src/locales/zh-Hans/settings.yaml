@@ -4,8 +4,7 @@ animations:
   stage-transitions:
     title: 是否开启舞台切换动画
   use-page-specific-transitions:
-    description: >-
-      某些页面会有自己的过场动画，这将覆盖舞台过场动画
+    description: 某些页面会有自己的过场动画，这将覆盖舞台过场动画
     title: 是否使用页面特定过场动画
 dialogs:
   onboarding:
@@ -24,7 +23,7 @@ dialogs:
     validationSuccess: 配置验证成功
     validationPartial: 配置部分验证
     validationFailed: 配置验证失败
-    validationError: '验证错误：{error}'
+    validationError: 验证错误：{error}
     testGeneration: Ping API
     testGenerationRunning: Ping...
     testGenerationFailed: Ping 测试失败
@@ -34,12 +33,9 @@ dialogs:
     next: 下一步
     retry: 重试
     credentialsSafeLabel: 保证您的 API 密钥和凭据的安全！
-    credentialsSafeLocal: >-
-      AIRI 完全本地运行在您的电脑中，我们绝不窃取您对大模型提供商的凭据。但请牢记，您的 API 密钥属于敏感信息。务必妥善保管，切勿与他人分享。
-    credentialsSafeOpenSource: >-
-      AIRI 在 {github} 开源，如果您想确认我们如何存储您的凭据，您可以自由浏览源码。
-    enableChatCheck: >-
-      允许 AIRI 向第一个可用的聊天模式发送「ping」消息以检查可用性
+    credentialsSafeLocal: AIRI 完全本地运行在您的电脑中，我们绝不窃取您对大模型提供商的凭据。但请牢记，您的 API 密钥属于敏感信息。务必妥善保管，切勿与他人分享。
+    credentialsSafeOpenSource: AIRI 在 {github} 开源，如果您想确认我们如何存储您的凭据，您可以自由浏览源码。
+    enableChatCheck: 允许 AIRI 向第一个可用的聊天模式发送「ping」消息以检查可用性
     start: 开始吧！
     loginPrompt: 登录并使用 AIRI 官方提供的服务以获得最佳体验。
     loginAction: 登录
@@ -48,8 +44,7 @@ dialogs:
     buyFlux: 补充 Flux 电量
     select-model: 选择模型
     no-models: 找不到可用模型
-    no-models-help: >-
-      请返回上一步并检查您的 API Key，或检查网络连接。
+    no-models-help: 请返回上一步并检查您的 API Key，或检查网络连接。
     permissions:
       title: 通知
       description: 您现在可以允许通知或者继续并稍后设置。
@@ -76,14 +71,15 @@ dialogs:
       optional: 可选的。
     media-files:
       label: 媒体文件
-      description: '可选：手动选择。'
+      description: 可选：手动选择。
       placeholder: 选择屏幕截图或视频文件
-      selected-count: '已选择 {count} 个文件'
+      selected-count: 已选择 {count} 个文件
     last-submitted-preview: 提交前预览
 language:
   title: 语言
-  description: |
-    界面语言。你也可以稍后再设置角色语言。
+  description: '界面语言。你也可以稍后再设置角色语言。
+
+    '
 controls-island:
   icon-size:
     title: 控制岛图标大小
@@ -94,8 +90,7 @@ controls-island:
 analytics:
   notice:
     title: 使用数据及崩溃分析
-    description: >-
-      AIRI 开发者将会收集脱敏的匿名使用数据，以及崩溃及错误细节，以帮助我们了解应用程序是如何使用和提高稳定性的，不会收集任何个人数据。
+    description: AIRI 开发者将会收集脱敏的匿名使用数据，以及崩溃及错误细节，以帮助我们了解应用程序是如何使用和提高稳定性的，不会收集任何个人数据。
     privacyPrefix: 阅读
     privacyLink: 隐私政策
     onboardingHint: 您可以稍后在「设置」>「系统」>「通用」中关闭使用数据及崩溃分析。
@@ -108,10 +103,14 @@ analytics:
 model-select:
   panel-callout:
     support-status-header: We support both 2D and 3D models
-    support-status: >
-      Click {select-button} to select or import models. Currently, {zip} (for Live2D models) and {vrm} (for VRM models) are supported.
-    model-type-example: >
-      Neuro-sama uses 2D model driven by framework developed by Live2D Inc, while Grok Ani (in Grok Companion) uses 3D model driven by VRM / MMD open formats.
+    support-status:
+      'Click {select-button} to select or import models. Currently, {zip} (for Live2D models) and {vrm} (for VRM models) are supported.
+
+      '
+    model-type-example:
+      'Neuro-sama uses 2D model driven by framework developed by Live2D Inc, while Grok Ani (in Grok Companion) uses 3D model driven by VRM / MMD open formats.
+
+      '
   select-model:
     title: Model Selector
     button: Select model
@@ -137,14 +136,16 @@ live2d:
     title: 缩放与位置
     scale: 缩放
     x: X
-    'y': 'Y'
+    y: Y
   switch-to-vrm:
     title: 想切换至3D虚拟形象？
     change-to-vrm: 切换至3D虚拟形象设定页面（VRM）
   theme-color-from-model:
     title: 从模型提取主题颜色
-    description: >
-      Extract prominent colors from current rendering canvas. Click on the color to apply it to AIRI. Try to extract multiple times, with the model in different poses, if the colors are not desirable.
+    description:
+      'Extract prominent colors from current rendering canvas. Click on the color to apply it to AIRI. Try to extract multiple times, with the model in different poses, if the colors are not desirable.
+
+      '
     button-extract:
       title: 提取
   animation:
@@ -182,15 +183,16 @@ live2d:
       title: FPS
       description: Limit rendering frame rate
       options:
-        unlimited: '∞'
+        unlimited: ∞
     shadow: Drop shadow
     reset-parameters: Reset to default parameters
   clear-model-cache: Clear model cache
   expressions:
     title: Expressions
     override-toggle: Expression system
-    sdk-preset-preserved-notice: >
-      SDK expression manager and eye blink are preserved when disabled.
+    sdk-preset-preserved-notice: 'SDK expression manager and eye blink are preserved when disabled.
+
+      '
     no-expression: No expressions available for this model.
     llm-integration-wip: LLM tool integration is not yet wired up.
     save-default: Save expression defaults
@@ -241,8 +243,8 @@ pages:
         unlink: 取消关联
       message:
         loading: 正在加载已关联的帐户...
-        unlinked: '解除了 {provider} 的关联'
-        linked: '关联到了 {provider}'
+        unlinked: 解除了 {provider} 的关联
+        linked: 关联到了 {provider}
         linkStarted: 正在重定向到 {provider}...
       error:
         listFailed: 暂时无法加载已关联的帐户
@@ -334,38 +336,36 @@ pages:
         scenario: 你最近醒来，忘记了之前的所有生活。
         systemprompt: 你将收到消息，请像真实人类一样回复。
         posthistoryinstructions: 记得模仿人类的行为。
-      modules_info: >-
-        为此角色卡配置模块。如未设置，将使用默认模块配置。
+      modules_info: 为此角色卡配置模块。如未设置，将使用默认模块配置。
       use_default: 使用默认
       use_default_not_configured: 使用默认（未配置）
       fields_info:
-        subtitle: >-
-          您可以在这里填写有关您正在创建的角色的一些详细信息，解释他的背景和情境，以及应该如何回应您的互动。
+        subtitle: 您可以在这里填写有关您正在创建的角色的一些详细信息，解释他的背景和情境，以及应该如何回应您的互动。
         name: 是该角色的正式名称。
         nickname: 您也可以提供一个昵称，它将被优先使用。
         description: 该角色的描述。
         notes: 如果您想添加一些个人备注。
-        personality: >-
-          在这里描述您的角色的个性。例如：害羞？好奇？其他？
+        personality: 在这里描述您的角色的个性。例如：害羞？好奇？其他？
         scenario: 周围环境是怎样的？当前的情境是什么？
         greetings_field: 问候语
         greetings: 您的角色应该如何说“你好”？
         systemprompt: 在这里向 AI LLM 解释当被提示时应该如何回应。
         posthistoryinstructions: 在消息历史之后，放入 AI LLM 应该阅读的内容。
-        version: >-
-          卡片版本，如果您从之前的卡片做了更改，应当增加此版本号。
+        version: 卡片版本，如果您从之前的卡片做了更改，应当增加此版本号。
         consciousness_model: 为这个角色选择 AI 模型。
         speech_model: 为此角色指定语音合成模型与音色。
+        identity_prompting: These fields all help define the character, but they are not separate runtime layers today. System Prompt is used in AIRI's active prompt assembly. Post-History Instructions is currently kept mainly for card compatibility and future prompt-pipeline work, so you can fill it out now without expecting distinct live behavior yet.
       errors:
         name: 错误：你必须提供一个有效的名称！
-        version: '错误：版本号无效！'
-        description: '错误：你必须为此卡片提供描述。'
-        personality: '错误：必须为该角色提供性格描述。'
-        scenario: '错误：必须提供一个情境。'
-        systemprompt: '错误：请提供系统提示。'
-        posthistoryinstructions: '错误：必须提供消息历史后的提示。'
+        version: 错误：版本号无效！
+        description: 错误：你必须为此卡片提供描述。
+        personality: 错误：必须为该角色提供性格描述。
+        scenario: 错误：必须提供一个情境。
+        systemprompt: 错误：请提供系统提示。
+        posthistoryinstructions: 错误：必须提供消息历史后的提示。
         invalid_artistry_json: 'Error: Artistry provider options contains invalid JSON.'
       none: None
+      preferred_background: Preferred Scene/Background
     modules: 模块
     name_asc: 名称 (A-Z)
     name_desc: 名称 (Z-A)
@@ -387,6 +387,89 @@ pages:
     try_different_search: 尝试使用其他关键词搜索
     upload: 上传
     upload_desc: 点击或拖拽文件到此处上传
+    tabs:
+      acting: Acting
+      modules: Modules
+      artistry: Artistry
+      proactivity: Proactivity
+      generation: Generation
+    acting:
+      modelExpressionPrompt: Model Expression Prompt
+      speechExpressionPrompt: Speech Expression Prompt
+      speechMannerismPrompt: Speech Mannerism Prompt
+      idleAnimations: Idle Animations
+    heartbeats:
+      enabled: Enable Heartbeats
+      intervalMinutes: Interval (minutes)
+      prompt: Heartbeat Prompt
+      injectIntoPrompt: Inject into Prompt
+      useAsLocalGate: Use as Local Gate
+      contextOptions:
+        windowHistory: Window History
+        systemLoad: System Load
+        usageMetrics: Usage Metrics
+      schedule:
+        start: Start Time
+        end: End Time
+      respectSchedule: Respect Schedule
+    dreamState:
+      enabled: Enable Dream State
+      strictAfkGating: Strict AFK Gating
+      journalingThreshold: Journaling Threshold
+      maxSessionsPerDay: Max Sessions per Day
+      sessionTimeoutMinutes: Session Timeout (minutes)
+      afkThresholdMinutes: AFK Threshold (minutes)
+      minConversationTurns: Min Conversation Turns
+    generation:
+      enabled: Enable Generation
+      provider: Provider
+      model: Model
+      maxTokens: Max Tokens
+      temperature: Temperature
+      topP: Top P
+      contextWidth: Context Width
+      reasoningFallback: Reasoning Fallback
+      compaction:
+        strategy: Compaction Strategy
+        minKeepTurns: Min Keep Turns
+      advanced: Advanced
+    grounding:
+      enabled: Enable Grounding
+      description: Grounding Description
+    artistry:
+      provider: Artistry Provider
+      model: Artistry Model
+      promptPrefix: Prompt Prefix
+      widgetInstruction: Widget Instructions
+      spawnMode: Spawn Mode
+      autonomousEnabled: Autonomous Enabled
+      autonomousThreshold: Autonomous Threshold
+      autonomousTarget: Autonomous Target
+      autonomousMonitorEnabled: Monitor Enabled
+      autonomousHistoryDepth: History Depth
+      options: Provider Options
+    import:
+      title: Import Card
+      step1: Name & Model
+      step2: Consciousness
+      step3: Speech
+      step4: Defaults
+      source:
+        file: From File
+        url: From URL
+        clipboard: From Clipboard
+      fileInputLabel: Select or drop a card file
+      supportedFormats: Supports JSON and PNG character cards
+      next: Next
+      back: Back
+      finish: Finish Import
+    export:
+      json: Export JSON
+      png: Export PNG
+      compatibility:
+        title: Compatibility Notes
+        airi: AIRI-native format with full extension data
+        sillytavern: SillyTavern chara_card_v2 compatible
   memory:
     description: 存放记忆的地方，以及策略
     title: 记忆体
@@ -429,7 +512,7 @@ pages:
         reset: 重置桌面数据
     confirmations:
       tooltip: 您确定吗？
-      'yes': '是'
+      'yes': 是
     status:
       exported: 聊天会话已导出。
       imported: 聊天会话已导入。
@@ -471,23 +554,19 @@ pages:
           title: 参数
           parameters:
             adaptive_threshold:
-              description: >-
-                是否根据信号随时间变化的方差应用自适应阈值
+              description: 是否根据信号随时间变化的方差应用自适应阈值
               label: 自适应阈值
             buffer_duration:
               description: 内部分析缓冲区的持续时间
               label: 缓冲时长
             envelope_filter_frequency:
-              description: >-
-                应用于平滑能量变化的包络滤波器频率
+              description: 应用于平滑能量变化的包络滤波器频率
               label: 包络滤波器频率
             highpass_filter_frequency:
-              description: >-
-                高通滤波器的频率设置，用于抑制低频噪声（如次低频噪声）
+              description: 高通滤波器的频率设置，用于抑制低频噪声（如次低频噪声）
               label: 高通滤波器频率
             lowpass_filter_frequency:
-              description: >-
-                低通滤波器的频率设置，用于削减高频信号（如人声）
+              description: 低通滤波器的频率设置，用于削减高频信号（如人声）
               label: 低通滤波器频率
             min_beat_interval:
               description: 最大每分钟节拍数（BPM）或检测到的节拍之间最小间隔
@@ -568,7 +647,7 @@ pages:
           provider-model-selection:
             collapse: 折叠
             custom_model_placeholder: 输入自订模型名称
-            current_model_label: '当前模型：'
+            current_model_label: 当前模型：
             description: 为意识选择合适的 LLM 服务来源
             error: 获取出错啦
             health_check_failed: 健康检查失败
@@ -610,17 +689,14 @@ pages:
       description: 一起玩 Minecraft！
       title: 我的世界 Minecraft
       enable: 启用我的世界集成
-      enable-description: >-
-        在 Chat 界面 中包含 Minecraft 自己的上下文和认知，并保持 Passive runtime visibility 启用。
+      enable-description: 在 Chat 界面 中包含 Minecraft 自己的上下文和认知，并保持 Passive runtime visibility 启用。
       configured: 我的世界已正确配置！
       read-only:
         title: 只读外壳
-        description: >-
-          目前此 Minecraft 管理界面将作为一个被动的外壳。你可以在这里观察运行状态，但服务配置仍然存在于 Minecraft 服务文件中。
+        description: 目前此 Minecraft 管理界面将作为一个被动的外壳。你可以在这里观察运行状态，但服务配置仍然存在于 Minecraft 服务文件中。
       setup:
         title: 配置
-        description: >-
-          你可以在下面的文件中找到设置 Minecraft bot 的说明
+        description: 你可以在下面的文件中找到设置 Minecraft bot 的说明
       runtime:
         title: 可观测
         connection: 连接
@@ -635,8 +711,16 @@ pages:
         service-online: 服务已上线
         service-offline: 服务已离线
         no-runtime-context: 尚未观察到 Bot 状态
-        last-context-seconds: '最后一次 Bot 状态更新：{seconds} 秒之前'
-        last-context-stale: '最后一次 Bot 状态：挂起'
+        last-context-seconds: 最后一次 Bot 状态更新：{seconds} 秒之前
+        last-context-stale: 最后一次 Bot 状态：挂起
+      server-address: Server Address
+      server-address-description: The IP address or hostname of the Minecraft server
+      server-address-placeholder: Enter server address (e.g., localhost or play.example.com)
+      server-port: Server Port
+      server-port-description: The port number of the Minecraft server (default 25565)
+      username: Username
+      username-description: Your username in the Minecraft server
+      username-placeholder: Enter your Minecraft username
     hearing:
       description: 语音识别
       title: 听觉
@@ -646,13 +730,17 @@ pages:
             description: 选择合适的语音转文本的服务来源
           confidence-threshold:
             title: 置信度阈值
-            description: >-
-              筛选低信任的文字记录以减少语音识别的幻觉。值靠近 0 更严格；拖动到左边以禁用。 仅对支持 Whisper API 的提供者有效（例如，OpenAI，Groq）。
+            description: 筛选低信任的文字记录以减少语音识别的幻觉。值靠近 0 更严格；拖动到左边以禁用。 仅对支持 Whisper API 的提供者有效（例如，OpenAI，Groq）。
             disabled: 禁用
-            verbose-json-note: >-
-              注意：如果您的提供商不支持 verbose_json 结果处理，此设置将不会有任何效果。
-            verbose-json-unsupported: >-
-              如果您的提供商没有返回 verbose_json 结果。置信度阈值将不会影响转录。
+            verbose-json-note: 注意：如果您的提供商不支持 verbose_json 结果处理，此设置将不会有任何效果。
+            verbose-json-unsupported: 如果您的提供商没有返回 verbose_json 结果。置信度阈值将不会影响转录。
+          hotkey:
+            title: Mic Toggle Hotkey
+            description: Toggle the microphone using a keyboard lock key (Scroll, Caps, or Num Lock). Your keyboard's LED will stay in sync with AIRI's mic status.
+            options:
+              scroll: Scroll Lock
+              caps: Caps Lock
+              num: Num Lock
     memory-long-term:
       description: 长期记忆
       title: 长期记忆
@@ -668,6 +756,37 @@ pages:
       token-description: 您的Discord机器人令牌
       token-placeholder: 输入您的Discord机器人令牌
       configured: Discord已正确配置！
+      connectivity:
+        title: Connectivity
+        status: Status
+        ping: Ping
+        connected: Connected
+        disconnected: Disconnected
+        connecting: Connecting...
+        error: Error
+        no-guilds: Not connected to any servers.
+      actions:
+        start: Start Service
+        stop: Stop Service
+        restart: Restart Service
+        force-sync: Force Card Sync
+        simulate: Simulate Message
+        test-auth: Test Auth
+        clear-log: Clear Log
+      presence:
+        title: Active Presence
+        guild: Server
+        channel: Channel
+        no-active: No active presence.
+      dev-console:
+        title: Developer Console
+        empty: No events recorded yet. Start the service to begin capturing.
+      simulate-dialog:
+        username: Username
+        username-placeholder: Enter a username...
+        content: Message
+        content-placeholder: Enter a test message...
+        send: Send
     speech:
       description: 语音合成
       sections:
@@ -695,11 +814,11 @@ pages:
             search_voices_placeholder: 搜索声线...
             search_voices_results: 找到 {count} / {total} 个声线
             unsupported_voice_warning_title: 没有支持的声线
-            unsupported_voice_warning_content: >-
-              我们正在尽快支持该模型的所有音色，如果你迫切希望支持该模型音色，请在 GitHub 上联系我们 https://github.com/moeru-ai/airi/issues
+            unsupported_voice_warning_content: 我们正在尽快支持该模型的所有音色，如果你迫切希望支持该模型音色，请在 GitHub 上联系我们 https://github.com/moeru-ai/airi/issues
             show_less: 显示更少
             show_more: 显示更多
             title: 选择语音合成服务来源
+            search_results: Found {count} of {total} models
           voice-settings:
             input-ssml:
               placeholder: 请输入 SSML 文本
@@ -743,7 +862,7 @@ pages:
         empty: 这里什么都还没有哦，在下面添加一个！
       add:
         title: 新建
-        description: '填写新的服务器配置，然后点击「保存并重启」，完成后将会更新至上方的「已配置」'
+        description: 填写新的服务器配置，然后点击「保存并重启」，完成后将会更新至上方的「已配置」
         pending-badge: 未保存
       status:
         unknown: 未加载
@@ -763,6 +882,10 @@ pages:
         cancel: 取消
         expand: 展开
         collapse: 收起
+        apply-restart: Save and restart stdio MCP
+        refresh: Refresh Status
+        install: Install
+        installed: Installed
       fields:
         identifier:
           label: 唯一标识符
@@ -775,7 +898,11 @@ pages:
         args:
           label: 命令参数
           description: 每行一个，按顺序传入。
-          placeholder: "-y\nsome-package-name\n/tmp"
+          placeholder: '-y
+
+            some-package-name
+
+            /tmp'
         cwd:
           label: 工作目录
           description: 可选，作为启动进程时使用的当前工作目录。
@@ -789,7 +916,7 @@ pages:
           label: 启用
       json:
         title: 编辑 mcp.json
-        description: '可以直接修改 JSON，点击「应用」时会自动解析，此时再次点击「保存并重启」就能写到磁盘上啦～'
+        description: 可以直接修改 JSON，点击「应用」时会自动解析，此时再次点击「保存并重启」就能写到磁盘上啦～
         placeholder: 在这里粘贴 mcp.json...
       test:
         title: 测试连接
@@ -804,7 +931,7 @@ pages:
         success: 连接成功！发现 {count} 个工具，耗时 {ms}ms
         failure: 连接失败了，耗时 {ms}ms
       errors:
-        empty-identifier: 服务器 # {index} is missing an identifier.
+        empty-identifier: 服务器
         duplicate-identifier: 标识符 "{name}" 重复了，每个服务器要用不同的名字。
         empty-command: '"{name}" 还没填启动命令。'
         invalid-shape: mcp.json 结构不对，最外层得有 "mcpServers" 这个字段。
@@ -812,6 +939,17 @@ pages:
         opened: 已经在文件管理器里打开 {path} 啦
         json-applied: JSON 已经解析完成了，点「保存并重启」就写到磁盘上啦。
         restarted: 重启好啦！启动了 {started} 个，失败 {failed} 个，跳过 {skipped} 个
+        install-success: '{name} installed successfully'
+      tabs:
+        manage: Manage
+        discover: Discover
+      search-placeholder: Search MCP servers (e.g. Google Search, Filesystem)...
+      dashboard:
+        tool-count: '{count} tools available'
+      registry:
+        loading: Loading registry...
+        stars: '{count} stars'
+        no-results: No servers found for "{query}"
   flux:
     title: Flux
     buy: 充值
@@ -852,8 +990,7 @@ pages:
         validation:
           failed:
             title: 请检查您的服务来源设置，验证失败。
-            description: >-
-              如果你想要继续，你仍然可以保存当前的配置。
+            description: 如果你想要继续，你仍然可以保存当前的配置。
             action: 仍要保存
         config:
           common:
@@ -865,8 +1002,7 @@ pages:
                   placeholder: sk-……
                 base-url:
                   label: Base URL
-                  description: >-
-                    用于连接远程服务的 baseUrl。通常看起来像是 http://localhost:11434/v1 或 https://example.com/v1。
+                  description: 用于连接远程服务的 baseUrl。通常看起来像是 http://localhost:11434/v1 或 https://example.com/v1。
                   placeholder: 基础 Url……
                 headers:
                   label: 添加自定义 HTTP 标头
@@ -877,8 +1013,9 @@ pages:
                     placeholder: 请求头数值
                 thinking-mode:
                   label: 深度思考模式
-                  description: >
-                    控制 Olama 深度思考的开关。GPT-OSS 只支持低/中/高水平。
+                  description: '控制 Olama 深度思考的开关。GPT-OSS 只支持低/中/高水平。
+
+                    '
                   options:
                     auto: 自动（默认服务来源）
                     disable: 禁用
@@ -911,8 +1048,7 @@ pages:
                 validators:
                   openai-compatible-check-connectivity:
                     label: Ollama需要额外的配置
-                    content: >-
-                      很抱歉，Ollama 连接检查失败。不要担心，如果是 Ollama，需要额外配置才能通过 Ollama。 您需要在启动 Olama 应用程序或 Ollama CLI 服务器时明确设置 <code>OLLAMA_HOST</code> 详情，请检查 <a href="https://airi.moeru.ai/docs/en/docs/manual/integrations/providers/chat/ollama">Ollama 集成指南</a>。
+                    content: 很抱歉，Ollama 连接检查失败。不要担心，如果是 Ollama，需要额外配置才能通过 Ollama。 您需要在启动 Olama 应用程序或 Ollama CLI 服务器时明确设置 <code>OLLAMA_HOST</code> 详情，请检查 <a href="https://airi.moeru.ai/docs/en/docs/manual/integrations/providers/chat/ollama">Ollama 集成指南</a>。
     common:
       continueAnyway: 仍然继续
       goToModelSelection: 选择模型→
@@ -957,8 +1093,7 @@ pages:
         description: Speech (text-to-speech) model providers. e.g. ElevenLabs, Azure Speech.
       transcription:
         title: Transcription
-        description: >-
-          Transcription (speech-to-text) model providers. e.g. Whisper.cpp, OpenAI, Azure Speech
+        description: Transcription (speech-to-text) model providers. e.g. Whisper.cpp, OpenAI, Azure Speech
       artistry:
         title: Artistry
         description: Image generation and design model providers. e.g. ComfyUI, Replicate.
@@ -971,13 +1106,13 @@ pages:
             description: Google AI Studio Image Preview.
     helpinfo:
       title: 第一次使用？
-      description: >
-        AIRI 需要配置至少一个 {chat} 服务来源，才能正常思考和运作。你可以把它看作是 AIRI 系统中角色的大脑。
+      description: 'AIRI 需要配置至少一个 {chat} 服务来源，才能正常思考和运作。你可以把它看作是 AIRI 系统中角色的大脑。
+
+        '
     explained:
       chat: 文本生成模型服务来源，例如 OpenRouter, OpenAI, Ollama
       Speech: 语音（文本转语音）模型服务来源，例如 ElevenLabs, Azure Speech
-      Transcription: >-
-        转录（语音转文本）模型服务来源，例如 Whisper.cpp, OpenAI, Azure Speech
+      Transcription: 转录（语音转文本）模型服务来源，例如 Whisper.cpp, OpenAI, Azure Speech
     description: LLM，语音合成，语音识别服务来源等
     provider:
       app-local-audio-transcription:
@@ -1012,14 +1147,11 @@ pages:
         helpinfo:
           title: 开始之前
           description:
-            part1: >-
-              虽然 Anthropic 最近宣布他们正在提供对 OpenAI SDK 兼容性的 Beta 版支持
-            part2: '（您可以在此处阅读更多信息）'
+            part1: 虽然 Anthropic 最近宣布他们正在提供对 OpenAI SDK 兼容性的 Beta 版支持
+            part2: （您可以在此处阅读更多信息）
             part3: 但由于实现细节附带
-            part4: >-
-              与 OpenAI SDK 不一致，目前无法在浏览器中使用此提供程序。
-            part5: >-
-              如果您确实需要使用此提供程序，则需要一个专用的代理后端，例如在
+            part4: 与 OpenAI SDK 不一致，目前无法在浏览器中使用此提供程序。
+            part5: 如果您确实需要使用此提供程序，则需要一个专用的代理后端，例如在
             part6: 上运行的Serverless Function，或者一些绕过 CORS 的服务，以绕过 CORS 限制。
       cloudflare-workers-ai:
         description: Cloudflare.com
@@ -1196,8 +1328,7 @@ pages:
               description: 较小的模型加载更快，但质量可能略有下降。
         models:
           fp32-webgpu:
-            description: >-
-              基于 WebGPU 的全精度模型 - 建议在支持的设备上使用
+            description: 基于 WebGPU 的全精度模型 - 建议在支持的设备上使用
           fp32:
             description: 全精度模型
           fp16:
@@ -1366,29 +1497,24 @@ pages:
       placeholder: ws://localhost:6121/ws
     server-hostname:
       label: 是否暴露在连接的网络下（WiFi，有线）
-      description: >-
-        选择是否只允许此设备与 AIRI 进行配对，或是也允许来自其他本地网络的设备进行配对
+      description: 选择是否只允许此设备与 AIRI 进行配对，或是也允许来自其他本地网络的设备进行配对
       advanced-label: 会监听的 hostname
-      advanced-description: >-
-        当您需要手动绑定时，使用指定的主机名或 IP 地址。
+      advanced-description: 当您需要手动绑定时，使用指定的主机名或 IP 地址。
       options:
         this-device: 仅此设备
         all: 本地网络所有人
         advanced: 高级配置
     server-auth-token:
       label: 认证凭据
-      description: >-
-        连接和配对需要安全令牌。如果留空，AIRI 自动生成一个新的令牌。
+      description: 连接和配对需要安全令牌。如果留空，AIRI 自动生成一个新的令牌。
       placeholder: 自动生成
     qr:
       title: 从 Pocket（口袋）版配对
-      description: >-
-        从 Pocket（口袋）版扫描此二维码以进行配对
+      description: 从 Pocket（口袋）版扫描此二维码以进行配对
       refresh: 刷新
       image-alt: AIRI 配对码
       candidates: 备选连接地址
-      token-hint: >-
-        二维码包含了认证凭据，所以 Pocket（口袋）版可以自动配对，请不要公开分享此二维码。
+      token-hint: 二维码包含了认证凭据，所以 Pocket（口袋）版可以自动配对，请不要公开分享此二维码。
       errors:
         title: 二维码暂不可用
         unavailable: 无法生成配对二维码
@@ -1399,7 +1525,7 @@ pages:
       action: 扫描
       success:
         title: 连接地址已更新
-        description: '现在配对到的 AIRI 主端 {url}'
+        description: 现在配对到的 AIRI 主端 {url}
       errors:
         title: 二维码扫描失败
         failed: 扫描或连接二维码失败。
@@ -1459,8 +1585,7 @@ pages:
                 title: 拍立得
                 description: 拍摄模型照片的工具
               context-flow:
-                description: >-
-                  检查传入的上下文更新和传出的聊天流事件
+                description: 检查传入的上下文更新和传出的聊天流事件
               websocket-inspector:
                 title: WebSocket 检查器
                 description: 检查原始 WebSocket 流量
@@ -1469,8 +1594,7 @@ pages:
                 description: 测试颜色提取
               providers-transcription-realtime-aliyun-nls:
                 title: 阿里云实时转写
-                description: >-
-                  将麦克风音频流式传输到阿里云 NLS 并检查实时转写
+                description: 将麦克风音频流式传输到阿里云 NLS 并检查实时转写
               performance-playground:
                 title: 性能测试场地
                 description: VRM 表情 + TTS lip sync 实验平台
@@ -1539,8 +1663,7 @@ pages:
                 color-6: 金黄色
                 color-7: 天蓝色
                 color-8: 赭黄色
-              description: >-
-                中国传统色彩，源自古代纺织品、瓷器和绘画
+              description: 中国传统色彩，源自古代纺织品、瓷器和绘画
               title: 中国传统颜色
           title: 预设
     title: 系统
@@ -1579,8 +1702,9 @@ sections:
       title: 通用
 theme:
   title: 主题
-  description: |
-    切换 AIRI 的基础主题，亮色模式或暗色模式。
+  description: '切换 AIRI 的基础主题，亮色模式或暗色模式。
+
+    '
 title: 设置
 voices: 声线
 vrm:
@@ -1597,12 +1721,14 @@ vrm:
     model-info-x: 宽度（X轴）
     model-info-y: 高度（Y轴）
     model-info-z: 深度（Z轴）
-    tips: |
-      设定模型放置的空间坐标。
+    tips: '设定模型放置的空间坐标。
+
       坐标轴已被可视化。
+
+      '
     scale: 缩放
     x: X轴偏移
-    'y': Y 轴偏移
+    y: Y 轴偏移
     z: Z轴偏移
     fov: 视角调整（度）
     rotation-y: 模型朝向（Y轴旋转）
@@ -1629,7 +1755,7 @@ spine:
     title: Scale And Position
     scale: Scale
     x: X
-    'y': 'Y'
+    y: Y
   theme-color-from-model:
     title: Extract colors from model
     button-extract:
@@ -1654,9 +1780,7 @@ spine:
       unlimited: Unlimited
 websocket-secure-enabled:
   title: 启用安全WebSocket (WSS)
-  description: >-
-    启用 WSS (WebSocket Secure) 以便在开发模式下允许移动设备(Pocket) 连接HTTPS 。这将自动生成一个自签名证书。
+  description: 启用 WSS (WebSocket Secure) 以便在开发模式下允许移动设备(Pocket) 连接HTTPS 。这将自动生成一个自签名证书。
 wip:
   title: 正在开发中
-  description: >-
-    此功能正在开发中，尚未公开发布。请在未来的更新中再次查看此功能。
+  description: 此功能正在开发中，尚未公开发布。请在未来的更新中再次查看此功能。
