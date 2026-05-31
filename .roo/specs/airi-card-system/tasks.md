@@ -104,12 +104,12 @@
 
 ## Phase 8: Card Index Page Template Updates
 
-- [ ] **T8.1**: Update [`index.vue`](packages/stage-pages/src/pages/settings/airi-card/index.vue) template to include CardImportWizard component
-- [ ] **T8.2**: Add import file input UI (drag-drop zone + file picker for JSON/PNG)
-- [ ] **T8.3**: Add export action buttons/context menu on card list items
-- [ ] **T8.4**: Add search bar and sort dropdown to card list header
-- [ ] **T8.5**: Add import compatibility info section (SillyTavern/chara_card_v2 explanation)
-- [ ] **T8.6**: Add card source browser drawer (placeholder for future external source browsing)
+- [x] **T8.1**: Update [`index.vue`](packages/stage-pages/src/pages/settings/airi-card/index.vue) template to include CardImportWizard component
+- [x] **T8.2**: Add import file input UI (drag-drop zone + file picker for JSON/PNG)
+- [x] **T8.3**: Add export action buttons/context menu on card list items
+- [x] **T8.4**: Add search bar and sort dropdown to card list header
+- [x] **T8.5**: Add import compatibility info section (SillyTavern/chara_card_v2 explanation)
+- [x] **T8.6**: Add card source browser drawer (placeholder for future external source browsing)
 
 ## Phase 9: i18n
 
