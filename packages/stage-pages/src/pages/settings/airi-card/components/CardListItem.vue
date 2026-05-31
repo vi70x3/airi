@@ -1,5 +1,3 @@
-<script lang="ts"></script>
-
 <script setup lang="ts">
 import { CharacterAvatar, CursorFloating } from '@proj-airi/stage-ui/components'
 import {
@@ -10,15 +8,15 @@ import {
   DropdownMenuTrigger,
 } from 'reka-ui'
 
-const props = defineProps<Props>()
+defineProps<Props>()
 
 const emit = defineEmits<{
   (e: 'select'): void
   (e: 'activate'): void
   (e: 'delete'): void
   (e: 'edit'): void
-  (e: 'exportJson'): void
-  (e: 'exportPng'): void
+  (e: 'export-json'): void
+  (e: 'export-png'): void
 }>()
 
 interface Props {
@@ -187,7 +185,7 @@ interface Props {
               :class="[
                 'cursor-pointer rounded-md px-3 py-2 outline-none data-[highlighted]:bg-neutral-100 dark:data-[highlighted]:bg-neutral-800',
               ]"
-              @click.stop="emit('exportJson')"
+              @click.stop="emit('export-json')"
             >
               Export JSON
             </DropdownMenuItem>
@@ -195,7 +193,7 @@ interface Props {
               :class="[
                 'cursor-pointer rounded-md px-3 py-2 outline-none data-[highlighted]:bg-neutral-100 dark:data-[highlighted]:bg-neutral-800',
               ]"
-              @click.stop="emit('exportPng')"
+              @click.stop="emit('export-png')"
             >
               Export PNG
             </DropdownMenuItem>

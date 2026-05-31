@@ -14,11 +14,12 @@ import { DialogContent, DialogOverlay, DialogPortal, DialogRoot, DialogTitle } f
 import { computed, ref, watch } from 'vue'
 import { toast } from 'vue-sonner'
 
-const DEFAULT_POST_HISTORY_INSTRUCTIONS = `Maintain your persona as the user's dedicated digital companion. Your goal is to provide a seamless, supportive, and emotionally resonant experience. Follow all personality and scenario cues strictly, and ensure your tone remains consistent with the established character traits.`
+const DEFAULT_POST_HISTORY_INSTRUCTIONS =
+  "Maintain your persona as the user's dedicated digital companion. Your goal is to provide a seamless, supportive, and emotionally resonant experience. Follow all personality and scenario cues strictly, and ensure your tone remains consistent with the established character traits."
 
 const props = defineProps<{
   modelValue: boolean
-  cardData: any
+  cardData: Record<string, unknown> | null
 }>()
 
 const emit = defineEmits<{
@@ -58,16 +59,33 @@ const userName = ref('')
 const consciousnessModelOptions = ref<{ value: string; label: string }[]>([])
 const speechModelOptions = ref<{ value: string; label: string }[]>([])
 
+function asString(value: unknown): string {
+  return typeof value === 'string' ? value : ''
+}
+
+function asStringArray(value: unknown): string[] {
+  return Array.isArray(value) ? value.filter((v): v is string => typeof v === 'string') : []
+}
+
+const cardDescription = computed(() => asString(props.cardData?.description))
+const cardPersonality = computed(() => asString(props.cardData?.personality))
+const cardScenario = computed(() => asString(props.cardData?.scenario))
+const cardSystemPrompt = computed(() => asString(props.cardData?.systemPrompt))
+const cardGreetings = computed(() => asStringArray(props.cardData?.greetings))
+const cardPostHistoryInstructions = computed(() => asString(props.cardData?.postHistoryInstructions))
+const cardMessageExample = computed(() => props.cardData?.messageExample)
+const cardExtensions = computed(() => props.cardData?.extensions as Record<string, unknown> | undefined)
+
 const hasUserPattern = computed(() => {
   if (!props.cardData) return false
   const fields = [
-    props.cardData.description,
-    props.cardData.personality,
-    props.cardData.scenario,
-    props.cardData.systemPrompt,
-    ...(props.cardData.greetings || []),
+    cardDescription.value,
+    cardPersonality.value,
+    cardScenario.value,
+    cardSystemPrompt.value,
+    ...cardGreetings.value,
   ]
-  return fields.some((f) => typeof f === 'string' && f.includes('{{user}}'))
+  return fields.some((f) => f.includes('{{user}}'))
 })
 
 // Toggles (Wizard defaults)
@@ -128,7 +146,7 @@ watch(
   () => {
     if (props.modelValue && props.cardData) {
       currentStep.value = 1
-      name.value = props.cardData.name || 'Imported Card'
+      name.value = asString(props.cardData?.name) || 'Imported Card'
       userName.value = ''
       selectedDisplayModelId.value = defaultDisplayModelId.value || ''
       selectedConsciousnessProvider.value = consciousnessProvider.value || ''
@@ -145,6 +163,7 @@ watch(
   { immediate: true },
 )
 
+// Watchers for async model loading
 watch(selectedConsciousnessProvider, async (newProvider) => {
   if (newProvider) {
     await consciousnessStore.loadModelsForProvider(newProvider)
@@ -212,32 +231,37 @@ async function finalizeImport() {
       return res
     }
 
-    const formattedGreetings = (props.cardData.greetings || []).map((g: string) => replacePatterns(g))
+    const formattedGreetings = cardGreetings.value.map((g) => replacePatterns(g))
 
-    const formattedMessageExample = (props.cardData.messageExample || []).map((example: any) => {
-      if (Array.isArray(example)) {
-        return example.map((line: string) => replacePatterns(line))
-      }
-      return replacePatterns(example)
-    })
+    const messageExampleRaw = cardMessageExample.value
+    let formattedMessageExample: unknown = []
+    if (Array.isArray(messageExampleRaw)) {
+      formattedMessageExample = messageExampleRaw.map((example: unknown) => {
+        if (Array.isArray(example)) {
+          return example.map((line: unknown) => (typeof line === 'string' ? replacePatterns(line) : ''))
+        }
+        return typeof example === 'string' ? replacePatterns(example) : ''
+      })
+    }
 
     const finalCard = {
       ...props.cardData,
       name: name.value.trim(),
-      description: replacePatterns(props.cardData.description || ''),
-      personality: replacePatterns(props.cardData.personality || ''),
-      scenario: replacePatterns(props.cardData.scenario || ''),
-      systemPrompt: replacePatterns(props.cardData.systemPrompt) || '.',
-      postHistoryInstructions:
-        replacePatterns(props.cardData.postHistoryInstructions) || DEFAULT_POST_HISTORY_INSTRUCTIONS,
+      description: replacePatterns(cardDescription.value),
+      personality: replacePatterns(cardPersonality.value),
+      scenario: replacePatterns(cardScenario.value),
+      systemPrompt: replacePatterns(cardSystemPrompt.value) || '.',
+      postHistoryInstructions: replacePatterns(cardPostHistoryInstructions.value) || DEFAULT_POST_HISTORY_INSTRUCTIONS,
       greetings: formattedGreetings,
       messageExample: formattedMessageExample,
       extensions: {
-        ...props.cardData.extensions,
+        ...cardExtensions.value,
         airi: {
-          ...props.cardData.extensions?.airi,
+          ...(cardExtensions.value?.airi as Record<string, unknown> | undefined),
           modules: {
-            ...props.cardData.extensions?.airi?.modules,
+            ...((cardExtensions.value?.airi as Record<string, unknown> | undefined)?.modules as
+              | Record<string, unknown>
+              | undefined),
             consciousness: {
               provider: selectedConsciousnessProvider.value,
               model: selectedConsciousnessModel.value,
@@ -251,22 +275,28 @@ async function finalizeImport() {
             activeBackgroundId: 'none',
           },
           artistry: {
-            ...props.cardData.extensions?.airi?.artistry,
+            ...((cardExtensions.value?.airi as Record<string, unknown> | undefined)?.artistry as
+              | Record<string, unknown>
+              | undefined),
             autonomousEnabled: artistryAutonomousEnabled.value,
           },
           dreamState: {
-            ...props.cardData.extensions?.airi?.dreamState,
+            ...((cardExtensions.value?.airi as Record<string, unknown> | undefined)?.dreamState as
+              | Record<string, unknown>
+              | undefined),
             enabled: dreamStateEnabled.value,
           },
           heartbeats: {
-            ...props.cardData.extensions?.airi?.heartbeats,
+            ...((cardExtensions.value?.airi as Record<string, unknown> | undefined)?.heartbeats as
+              | Record<string, unknown>
+              | undefined),
             enabled: proactivityEnabled.value,
           },
         } as AiriExtension,
       },
     }
 
-    const newId = await cardStore.addCard(finalCard)
+    const newId = await cardStore.addCard(finalCard as any)
     emit('imported', newId)
     emit('update:modelValue', false)
     toast.success('Companion successfully configured and saved!')
@@ -342,11 +372,11 @@ async function finalizeImport() {
                 <div
                   class="max-h-[100px] overflow-y-auto border border-neutral-200 rounded-xl bg-neutral-50/40 p-3 text-xs text-neutral-500 dark:border-neutral-700 dark:bg-neutral-950/40"
                 >
-                  <div v-for="(greet, i) in props.cardData?.greetings" :key="i" class="mb-2 last:mb-0">
+                  <div v-for="(greet, i) in cardGreetings" :key="i" class="mb-2 last:mb-0">
                     <strong>Greeting {{ Number(i) + 1 }}:</strong>
                     {{ greet }}
                   </div>
-                  <div v-if="!props.cardData?.greetings?.length" class="italic">No greetings imported.</div>
+                  <div v-if="!cardGreetings.length" class="italic">No greetings imported.</div>
                 </div>
               </div>
 
@@ -356,7 +386,7 @@ async function finalizeImport() {
                 </label>
                 <textarea
                   readonly
-                  :value="props.cardData?.personality || props.cardData?.description || 'No personality prompt found.'"
+                  :value="cardPersonality || cardDescription || 'No personality prompt found.'"
                   rows="4"
                   class="w-full resize-none border border-neutral-200 rounded-xl bg-neutral-50/40 p-3 text-xs text-neutral-500 outline-none dark:border-neutral-700 dark:bg-neutral-950/40"
                 />

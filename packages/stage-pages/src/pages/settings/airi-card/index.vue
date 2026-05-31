@@ -23,18 +23,22 @@ import CardImportWizard from './components/CardImportWizard.vue'
 import CardListItem from './components/CardListItem.vue'
 import DeleteCardDialog from './components/DeleteCardDialog.vue'
 
-import {
-  base64ToUtf8,
-  buildCharaCardV2,
-  concatUint8Arrays,
-  crc32,
-  createCrc32Table,
-  createPngTextChunk,
-  injectPngTextChunk,
-  loadImageElement,
-  parsePngCharaPayload,
-  utf8ToBase64,
-} from './utils'
+import { buildCharaCardV2, injectPngTextChunk, parsePngCharaPayload, utf8ToBase64 } from './utils'
+
+interface WindowWithElectron extends Window {
+  electron?: {
+    ipcRenderer?: {
+      on: (channel: string, handler: (...args: unknown[]) => void) => void
+      removeListener: (channel: string, handler: (...args: unknown[]) => void) => void
+    }
+  }
+}
+
+interface CardSourceLink {
+  readonly name: string
+  readonly description: string
+  readonly url: string
+}
 
 const { t } = useI18n()
 const cardStore = useAiriCardStore()
@@ -55,16 +59,19 @@ const isCardDialogOpen = ref(false)
 const isCardCreationDialogOpen = ref(false)
 
 // Card browser drawer & wizard states
-const activeBrowserSource = ref<any>(null)
+const activeBrowserSource = ref<CardSourceLink | null>(null)
 const isImportWizardOpen = ref(false)
-const importedCardData = ref<any>(null)
+const importedCardData = ref<Record<string, unknown> | null>(null)
 
 // Check if running in Electron
-const isElectron = computed(() => typeof window !== 'undefined' && !!(window as any).electron)
+const isElectron = computed(() => typeof window !== 'undefined' && Boolean((window as WindowWithElectron).electron))
 
-let removeIpcListener = () => {}
+// NOTICE: Placeholder for IPC listener cleanup function.
+// Assigned a real cleanup function in onMounted when running in Electron.
+// Remains empty noop in non-Electron environments where no listener is registered.
+let removeIpcListener: () => void = () => {}
 
-async function handleCharaCardDownloaded(payload: { base64Data: string; filename: string; ext: string }) {
+function handleCharaCardDownloaded(payload: { base64Data: string; filename: string; ext: string }) {
   try {
     const rawData = atob(payload.base64Data)
     const arrayBuffer = new ArrayBuffer(rawData.length)
@@ -73,7 +80,7 @@ async function handleCharaCardDownloaded(payload: { base64Data: string; filename
       view[i] = rawData.charCodeAt(i)
     }
 
-    let importedCard: ImportedCardPayload
+    let importedCard: Record<string, unknown>
 
     if (payload.ext === 'png') {
       importedCard = parsePngCharaPayload(arrayBuffer)
@@ -83,7 +90,7 @@ async function handleCharaCardDownloaded(payload: { base64Data: string; filename
       importedCard = parseImportedCard(text)
     }
 
-    const normalized = addCardPreviewNormalize(importedCard)
+    const normalized = addCardPreviewNormalize(importedCard) as unknown as Record<string, unknown>
     importedCardData.value = normalized
 
     // Close webview drawer
@@ -98,13 +105,14 @@ async function handleCharaCardDownloaded(payload: { base64Data: string; filename
 }
 
 onMounted(() => {
-  if (typeof window !== 'undefined' && (window as any).electron?.ipcRenderer) {
-    const handler = (_event: any, payload: { base64Data: string; filename: string; ext: string }) => {
+  const win = window as WindowWithElectron
+  if (typeof window !== 'undefined' && win.electron?.ipcRenderer) {
+    const handler = (_event: unknown, payload: { base64Data: string; filename: string; ext: string }) => {
       handleCharaCardDownloaded(payload)
     }
-    ;(window as any).electron.ipcRenderer.on('chara-card-downloaded', handler)
+    win.electron.ipcRenderer.on('chara-card-downloaded', handler as (...args: unknown[]) => void)
     removeIpcListener = () => {
-      ;(window as any).electron?.ipcRenderer.removeListener('chara-card-downloaded', handler)
+      win.electron?.ipcRenderer?.removeListener('chara-card-downloaded', handler as (...args: unknown[]) => void)
     }
   }
 })
@@ -182,7 +190,7 @@ interface CardItem {
   customizable?: boolean
 }
 
-type ImportedCardPayload = Card | ccv3.CharacterCardV3
+type RawImportedCardPayload = Card | ccv3.CharacterCardV3
 
 const CARD_EXPORT_FRAME = {
   width: 925,
@@ -194,14 +202,14 @@ const CARD_EXPORT_FRAME = {
 } as const
 
 // T3.4: parseImportedCard — parse JSON string as Card type
-function parseImportedCard(content: string): ImportedCardPayload {
-  const parsed = JSON.parse(content) as any
+function parseImportedCard(content: string): Record<string, unknown> {
+  const parsed = JSON.parse(content) as Record<string, unknown>
 
   if (parsed?.format === 'airi-card' && parsed?.version === 1 && parsed?.card) {
-    return parsed.card as Card
+    return parsed.card as Record<string, unknown>
   }
 
-  return parsed as ImportedCardPayload
+  return parsed
 }
 
 // T3.5: parseStMessageExamples — convert ST message examples format to greeting format
@@ -238,14 +246,14 @@ function parseStMessageExamples(exampleStr: string): string[][] {
 }
 
 // T3.6: getImportedCardName — extract name from imported card
-function getImportedCardName(card: ImportedCardPayload): string {
+function getImportedCardName(card: RawImportedCardPayload): string {
   if ('data' in card) return card.data?.name || 'Imported Card'
 
   return card.name || 'Imported Card'
 }
 
 // T3.7: withImportedCardName — return card with updated name
-function withImportedCardName(card: ImportedCardPayload, name: string): ImportedCardPayload {
+function withImportedCardName(card: RawImportedCardPayload, name: string): RawImportedCardPayload {
   if ('data' in card) {
     return {
       ...card,
@@ -280,34 +288,39 @@ function getUniqueImportedCardName(baseName: string): string {
 }
 
 // T3.8: addCardPreviewNormalize — normalize imported card data with defaults
-function addCardPreviewNormalize(card: any) {
-  const data = card.data || card
+function addCardPreviewNormalize(card: Record<string, unknown>): RawImportedCardPayload {
+  const data = (card.data as Record<string, unknown> | undefined) || card
 
   if (card.format === 'airi-card' || card.systemPrompt !== undefined) {
     return {
       ...card,
-      version: card.version || '1.0.0',
+      version: (card.version as string | undefined) || '1.0.0',
       messageExample:
-        typeof card.messageExample === 'string' ? parseStMessageExamples(card.messageExample) : card.messageExample,
-    }
+        typeof card.messageExample === 'string'
+          ? parseStMessageExamples(card.messageExample as string)
+          : card.messageExample,
+    } as RawImportedCardPayload
   }
 
   return {
-    name: data.name || 'Imported Card',
-    version: data.character_version || '1.0.0',
-    description: data.description ?? '',
-    notes: data.creator_notes ?? '',
-    personality: data.personality ?? '',
-    scenario: data.scenario ?? '',
-    systemPrompt: data.system_prompt ?? '',
-    postHistoryInstructions: data.post_history_instructions ?? '',
-    greetings: [data.first_mes, ...(data.alternate_greetings ?? [])].filter(Boolean),
-    messageExample: parseStMessageExamples(data.mes_example || ''),
+    name: (data.name as string | undefined) || 'Imported Card',
+    version: (data.character_version as string | undefined) || '1.0.0',
+    description: (data.description as string | undefined) ?? '',
+    notes: (data.creator_notes as string | undefined) ?? '',
+    personality: (data.personality as string | undefined) ?? '',
+    scenario: (data.scenario as string | undefined) ?? '',
+    systemPrompt: (data.system_prompt as string | undefined) ?? '',
+    postHistoryInstructions: (data.post_history_instructions as string | undefined) ?? '',
+    greetings: [
+      data.first_mes as string | undefined,
+      ...((data.alternate_greetings as string[] | undefined) ?? []),
+    ].filter(Boolean) as string[],
+    messageExample: parseStMessageExamples((data.mes_example as string | undefined) || ''),
     extensions: {
-      airi: data.extensions?.airi,
-      ...data.extensions,
+      airi: (data.extensions as Record<string, unknown> | undefined)?.airi,
+      ...(data.extensions as Record<string, unknown> | undefined),
     },
-  }
+  } as RawImportedCardPayload
 }
 
 // File input handling for JSON and PNG import
@@ -316,7 +329,7 @@ watch(inputFiles, async (newFiles) => {
   if (!file) return
 
   try {
-    let importedCard: ImportedCardPayload
+    let importedCard: Record<string, unknown>
 
     if (file.name.toLowerCase().endsWith('.png')) {
       importedCard = parsePngCharaPayload(await file.arrayBuffer())
@@ -417,7 +430,15 @@ function handleCardCreationDialog() {
   isCardCreationDialogOpen.value = true
 }
 
-// T3.9: AIRI JSON export
+/**
+ * Export card as JSON file.
+ *
+ * Call stack:
+ *
+ * exportCard (index.vue)
+ *   -> {@link getCardWithExportedBackground}
+ *   -> {@link buildCharaCardV2}
+ */
 async function exportCard(cardId: string) {
   const card = await getCardWithExportedBackground(cardId)
   if (!card) {
@@ -425,13 +446,8 @@ async function exportCard(cardId: string) {
     return
   }
 
-  const payload = {
-    format: 'airi-card',
-    version: 1,
-    card,
-  }
-
-  const blob = new Blob([`${JSON.stringify(payload, null, 2)}\n`], { type: 'application/json' })
+  const json = JSON.stringify(buildCharaCardV2(card))
+  const blob = new Blob([json], { type: 'application/json' })
   const url = URL.createObjectURL(blob)
   const anchor = document.createElement('a')
   const safeName = (card.name || 'airi-card')
@@ -447,17 +463,15 @@ async function exportCard(cardId: string) {
   URL.revokeObjectURL(url)
 }
 
-// T3.11: Background embedding for export
+// T3.10: getCardWithExportedBackground — get card with background data URL for export
 async function getCardWithExportedBackground(cardId: string): Promise<AiriCard | undefined> {
-  const card = cardStore.getCard(cardId)
-  if (!card) return undefined
+  const card = cards.value.get(cardId)
+  if (!card) return
 
   const activeBackgroundId = card.extensions?.airi?.modules?.activeBackgroundId
-
   if (!activeBackgroundId || activeBackgroundId === 'none') return card
 
   const exportBackground = backgroundStore.entries.get(activeBackgroundId)
-
   if (!exportBackground) return card
 
   return new Promise((resolve) => {
@@ -478,7 +492,7 @@ async function getCardWithExportedBackground(cardId: string): Promise<AiriCard |
             },
           },
         },
-      } as any)
+      } as AiriCard)
     }
     reader.onerror = () => resolve(card)
     reader.readAsDataURL(exportBackground.blob)
@@ -486,7 +500,16 @@ async function getCardWithExportedBackground(cardId: string): Promise<AiriCard |
 }
 
 // T3.14: composeCardExportPng — compose framed PNG canvas from card preview image
-async function composeCardExportPng(previewImage: string) {
+async function composeCardExportPng(previewImage: string): Promise<Uint8Array> {
+  const loadImageElement = (src: string): Promise<HTMLImageElement> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image()
+      img.onload = () => resolve(img)
+      img.onerror = reject
+      img.src = src
+    })
+  }
+
   const [preview, frame] = await Promise.all([loadImageElement(previewImage), loadImageElement(cardExportFrameUrl)])
 
   const canvas = document.createElement('canvas')
@@ -545,9 +568,9 @@ async function exportCardPng(cardId: string) {
 
   const pngBytes = await composeCardExportPng(previewImage)
   const metadata = utf8ToBase64(JSON.stringify(buildCharaCardV2(card)))
-  const encodedPng = injectPngTextChunk(pngBytes, 'chara', metadata)
+  const encodedPng = injectPngTextChunk(pngBytes as Uint8Array, 'chara', metadata)
 
-  const blob = new Blob([encodedPng], { type: 'image/png' })
+  const blob = new Blob([encodedPng as BlobPart], { type: 'image/png' })
   const url = URL.createObjectURL(blob)
   const anchor = document.createElement('a')
   const safeName = (card.name || 'airi-card')
